@@ -20,8 +20,6 @@
 #ifndef GEOMETRY_H
 #define GEOMETRY_H
 
-#include "thomas_algorithm.h"
-
 #include <cmath>
 #include <vector>
 #include <cstddef>
@@ -32,6 +30,8 @@ using Size = std::size_t;
 using Ind = std::size_t;
 using CoordArr = std::vector<double>;
 using Point2DArr = std::vector<std::vector<double>>;
+using ElemConnArr = std::vector<std::vector<unsigned int>>;
+
 class Geometry {
 private:
     double L1, L2, H1, H2, H3;
@@ -42,6 +42,7 @@ private:
     CoordArr x_rightbound, y_rightbound;
     CoordArr x_bottombound, y_bottombound;
     CoordArr x_topbound, y_topbound;
+    ElemConnArr ElemConnData;
 
 public:
     Geometry() = default;
@@ -59,6 +60,7 @@ public:
 public:
     const Point2DArr& get_x() const {return x;}
     const Point2DArr& get_y() const {return y;}
+    const ElemConnArr& getElementConnectionData() const {return ElemConnData;}
     Size getTotalHorizontalElements() const {return M;}
     Size getTotalVerticalElements() const {return N;}
 };
@@ -239,5 +241,19 @@ void Geometry::generateStretchingGrid(double alpha, double eta1) {
     }
 }
 
+
+void Geometry::generateGridConnection() {
+    for (std::size_t i = 0; i < N; ++i) {
+        for (std::size_t j = 0; j < M; ++j) {
+            unsigned int ind_elem = i * (M + 1) + j;
+            unsigned int first_node_ind = ind_elem;
+            unsigned int second_node_ind = first_node_ind + 1;
+            unsigned int third_node_ind = second_node_ind + M + 1;
+            unsigned int fourth_node_ind = first_node_ind + M + 1;
+            ElemConnData.push_back({first_node_ind, second_node_ind, third_node_ind});
+            ElemConnData.push_back({first_node_ind, third_node_ind, fourth_node_ind});
+        }
+    }
+}
 
 #endif

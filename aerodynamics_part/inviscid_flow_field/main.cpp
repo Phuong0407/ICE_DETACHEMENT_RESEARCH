@@ -12,14 +12,27 @@ int main() {
     // G.generate_stretching_grid(0.5, 0.5);
     G.generateAlgebraicGrid();
     G.generateEllipicGrid();
-    Point2DArr a = G.get_x();
-    Point2DArr b = G.get_y();
+    G.generateGridConnection();
 
-    if (a.size()!=0){
-        for (std::size_t i = 0; i < a.size(); ++i) {
-            for (std::size_t j = 0; j < a[i].size(); ++j) {
-                std::cout << "(" << a[i][j] << ", " << b[i][j] << ")" << std::endl;
-            }
+    Point2DArr x = G.get_x();
+    Point2DArr y = G.get_y();
+    ElemConnArr c = G.getElementConnectionData();
+
+    if (c.size() != 0) {
+        for (const auto & d : c) {
+            std::cout << "[" << d[0] << ", " << d[1] << ", " << d[2] << "]" << std::endl;
         }
     }
+
+    if (c.size() != 0) {
+        for (const auto & d : c) {
+            std::size_t i = d[0] / 31, j = d[0] % 31;
+            std::cout << "[(" << x[i][j] << ", " << y[i][j] << "),";
+            i = d[1] / 31, j = d[1] % 31;
+            std::cout << "(" << x[i][j] << ", " << y[i][j] << "),";
+            i = d[2] / 31, j = d[2] % 31;
+            std::cout << "(" << x[i][j] << ", " << y[i][j] << ")]," << std::endl;
+        }
+    }
+
 }
