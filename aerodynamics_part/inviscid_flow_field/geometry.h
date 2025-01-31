@@ -25,12 +25,66 @@
 #include <cstddef>
 #include <iostream>
 #include <stdexcept>
+#include <utility>
 
 using Size = std::size_t;
 using Ind = std::size_t;
 using CoordArr = std::vector<double>;
 using Coord2DArr = std::vector<CoordArr>;
-using ElemConnArr = std::vector<std::vector<unsigned int>>;
+using ElemConnArr = std::vector<std::vector<std::size_t>>;
+using NodeIndArr = std::vector<std::size_t>;
+using EdgeConn = std::pair<std::size_t, std::size_t>;
+using EdgeConnArr = std::vector<EdgeConn>;
+
+constexpr unsigned int OUTSIDE = 0;
+constexpr unsigned int INSIDE = 1;
+constexpr unsigned int INTERSECTING = 2;
+constexpr unsigned int ON_BOUNDARY = 3;
+
+
+class BoundaryEdge {
+private:
+    double x1, x2, y1, y2;
+    double nx, ny;
+
+public:
+    BoundaryEdge() = default;
+    void initEdgeCoordinates(double x1, double y1, double x2, double y2) {
+        this->x1 = x1;
+        this->y1 = y1;
+        this->x2 = x2;
+        this->y2 = y2;
+    }
+    void initEdgeOutwardNormalVector(double nx, double ny) {
+        this->nx = nx;
+        this->ny = ny;
+    }
+    double get_x1() const {return x1;}
+    double get_y1() const {return y1;}
+    double get_x2() const {return x2;}
+    double get_y2() const {return y2;}
+};
+
+class PolygonHelper {
+public:
+    static void compute_outward_norm_vector(BoundaryEdge& edge);
+};
+
+void PolygonHelper::compute_outward_norm_vector(BoundaryEdge& edge) {
+    const double x1 = edge.get_x1(), y1 = edge.get_y1();
+    const double x2 = edge.get_x2(), y2 = edge.get_y2();
+    double dir_x = x2 - x1, dir_y = y2 - y1;
+    double length = std::sqrt(dir_x * dir_x + dir_y + dir_y);
+    dir_x /= length, dir_y /= length;
+    double norm_x = -dir_y, norm_y = dir_x;
+    double cross_product = dir_x * norm_y - dir_y * norm_x;
+    if (cross_product > 0) {
+        norm_x = - norm_x;
+        norm_y = - norm_y;
+    }
+    edge.initEdgeOutwardNormalVector(norm_x, norm_y);
+}
+
 
 class Geometry {
 private:
@@ -43,6 +97,8 @@ private:
     CoordArr x_bottombound, y_bottombound;
     CoordArr x_topbound, y_topbound;
     ElemConnArr ElemConnData;
+    EdgeConnArr NeumannBoundaryConditions;
+    std::vector<double> BoundaryFlux;
 
 public:
     Geometry() = default;
@@ -56,6 +112,8 @@ public:
     void transfiniteInterpolation();
     void generateStretchingGrid(double alpha, double eta1);
     void generateGridConnection();
+    void generateNeumannBoundaryNodeIndices();
+    void generateBoundaryFlux();
 
 public:
     CoordArr get_x() const;
@@ -273,6 +331,26 @@ CoordArr Geometry::get_y() const {
         }
     }
     return y_coords;
+}
+
+void Geometry::generateNeumannBoundaryNodeIndices() {
+    NeumannBoundaryConditions.clear();
+    for (std::size_t i = 0; i < M; ++i) {
+        std::size_t first_node_ind = i, second_node_ind = first_node_ind + 1;
+        NeumannBoundaryConditions.emplace_back(first_node_ind, second_node_ind);
+    }
+    for (std::size_t i = 0; i < N; ++i) {
+        std::size_t first_node_ind = i * (M + 1) + M, second_node_ind = first_node_ind + M + 1;
+        NeumannBoundaryConditions.emplace_back(first_node_ind, second_node_ind);
+    }
+    for (int i = M; i > 0; --i) {
+        std::size_t first_node_ind = N * (M + 1) + i, second_node_ind = first_node_ind - 1;
+        NeumannBoundaryConditions.emplace_back(first_node_ind, second_node_ind);
+    }
+    for (int i = N; i > 0; --i) {
+        std::size_t first_node_ind = i * (M + 1), second_node_ind = first_node_ind - M - 1;
+        NeumannBoundaryConditions.emplace_back(first_node_ind, second_node_ind);
+    }
 }
 
 #endif

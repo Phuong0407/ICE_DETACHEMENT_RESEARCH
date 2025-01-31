@@ -7,13 +7,14 @@
 int main() {
     Geometry G;
     G.initPhysicalDimensions(3,3,3,4,2);
-    G.initComputationalDimensions(8,8,8,8);
+    G.initComputationalDimensions(5,5,5,5);
     G.initCoordsArrSize();
     G.initGridStep();
     G.generateBoundaryNode();
     G.generateAlgebraicGrid();
     G.generateEllipicGrid();
     G.generateGridConnection();
+    G.generateNeumannBoundaryNodeIndices();
 
     CoordArr x = G.get_x();
     CoordArr y = G.get_y();
@@ -68,6 +69,5 @@ int main() {
     scriptFile.close();
 
     system("gnuplot -p plot_grid.gnu");
-
     return 0;
 }
