@@ -2,7 +2,7 @@
 #include <iostream>
 #include <vector>
 #include <fstream>
-#include <cstdlib>  // For system() function
+#include <cstdlib>
 
 int main() {
     Geometry G;
@@ -17,8 +17,8 @@ int main() {
     G.generateEllipicGrid();
     G.generateGridConnection();
 
-    Point2DArr x = G.get_x();
-    Point2DArr y = G.get_y();
+    Coord2DArr x = G.get_x();
+    Coord2DArr y = G.get_y();
     ElemConnArr c = G.getElementConnectionData();
 
     std::size_t M = G.getTotalHorizontalElements();

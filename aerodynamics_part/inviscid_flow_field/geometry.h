@@ -29,7 +29,7 @@
 using Size = std::size_t;
 using Ind = std::size_t;
 using CoordArr = std::vector<double>;
-using Point2DArr = std::vector<std::vector<double>>;
+using Coord2DArr = std::vector<CoordArr>;
 using ElemConnArr = std::vector<std::vector<unsigned int>>;
 
 class Geometry {
@@ -37,7 +37,7 @@ private:
     double L1, L2, H1, H2, H3;
     double dx1, dx2, dx3, dy1, dy2;
     Size N, M, M1, M2, M3;
-    Point2DArr x, y;
+    Coord2DArr x, y;
     CoordArr x_leftbound, y_leftbound;
     CoordArr x_rightbound, y_rightbound;
     CoordArr x_bottombound, y_bottombound;
@@ -58,8 +58,8 @@ public:
     void generateGridConnection();
 
 public:
-    const Point2DArr& get_x() const {return x;}
-    const Point2DArr& get_y() const {return y;}
+    const Coord2DArr& get_x() const {return x;}
+    const Coord2DArr& get_y() const {return y;}
     const ElemConnArr& getElementConnectionData() const {return ElemConnData;}
     Size getTotalHorizontalElements() const {return M;}
     Size getTotalVerticalElements() const {return N;}
@@ -127,11 +127,11 @@ void Geometry::generateEllipicGrid() {
     if (x.empty() || y.empty())
         throw std::runtime_error("ERROR: ALGEBRAIC-GENERATING COORDINATES ARRAY IS EMPTY. GENERATE IT FIRST BY USING generateAlgebraicGrid()!");
 
-    Point2DArr new_x(N + 1, std::vector<double>(M + 1, 0.0));
-    Point2DArr new_y(N + 1, std::vector<double>(M + 1, 0.0));
-    Point2DArr alpha(N + 1, std::vector<double>(M + 1, 0.0));
-    Point2DArr beta(N + 1, std::vector<double>(M + 1, 0.0));
-    Point2DArr gamma(N + 1, std::vector<double>(M + 1, 0.0));
+    Coord2DArr new_x(N + 1, std::vector<double>(M + 1, 0.0));
+    Coord2DArr new_y(N + 1, std::vector<double>(M + 1, 0.0));
+    Coord2DArr alpha(N + 1, std::vector<double>(M + 1, 0.0));
+    Coord2DArr beta(N + 1, std::vector<double>(M + 1, 0.0));
+    Coord2DArr gamma(N + 1, std::vector<double>(M + 1, 0.0));
     new_x = x, new_y = y;
 
     double min_err = 1e-6;
