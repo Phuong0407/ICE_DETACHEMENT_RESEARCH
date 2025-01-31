@@ -58,8 +58,8 @@ public:
     void generateGridConnection();
 
 public:
-    const Coord2DArr& get_x() const {return x;}
-    const Coord2DArr& get_y() const {return y;}
+    CoordArr get_x() const;
+    CoordArr get_y() const;
     const ElemConnArr& getElementConnectionData() const {return ElemConnData;}
     Size getTotalHorizontalElements() const {return M;}
     Size getTotalVerticalElements() const {return N;}
@@ -254,6 +254,25 @@ void Geometry::generateGridConnection() {
             ElemConnData.push_back({first_node_ind, third_node_ind, fourth_node_ind});
         }
     }
+}
+
+CoordArr Geometry::get_x() const {
+    CoordArr x_coords;
+    for (std::size_t i = 0; i < N + 1; ++i) {
+        for (std::size_t j = 0; j < M + 1; ++j) {
+            x_coords.push_back(x[i][j]);
+        }
+    }
+    return x_coords;
+}
+CoordArr Geometry::get_y() const {
+    CoordArr y_coords;
+    for (std::size_t i = 0; i < N + 1; ++i) {
+        for (std::size_t j = 0; j < M + 1; ++j) {
+            y_coords.push_back(y[i][j]);
+        }
+    }
+    return y_coords;
 }
 
 #endif
