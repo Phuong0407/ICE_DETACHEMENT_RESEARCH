@@ -34,7 +34,7 @@ using Coord2DArr = std::vector<CoordArr>;
 using ElemConnArr = std::vector<std::vector<std::size_t>>;
 using NodeIndArr = std::vector<std::size_t>;
 using EdgeConn = std::pair<std::size_t, std::size_t>;
-using EdgeConnArr = std::vector<EdgeConn>;
+using FluxDataArr = std::vector<double>;
 
 constexpr unsigned int OUTSIDE = 0;
 constexpr unsigned int INSIDE = 1;
@@ -44,11 +44,17 @@ constexpr unsigned int ON_BOUNDARY = 3;
 
 class BoundaryEdge {
 private:
+    Ind first_node_ind, second_node_ind;
     double x1, x2, y1, y2;
     double nx, ny;
+    double flux;
 
 public:
     BoundaryEdge() = default;
+    void initNodeIndices(Ind first_node_ind, Ind second_node_ind) {
+        this->first_node_ind = first_node_ind;
+        this->second_node_ind = second_node_ind;
+    }
     void initEdgeCoordinates(double x1, double y1, double x2, double y2) {
         this->x1 = x1;
         this->y1 = y1;
@@ -59,10 +65,16 @@ public:
         this->nx = nx;
         this->ny = ny;
     }
+    void initFlux(double flux) {this->flux = flux;}
     double get_x1() const {return x1;}
     double get_y1() const {return y1;}
     double get_x2() const {return x2;}
     double get_y2() const {return y2;}
+    double get_nx() const {return nx;}
+    double get_ny() const {return ny;}
+    double get_flux() const {return flux;}
+    Ind get_first_node_ind() const {return first_node_ind;}
+    Ind get_second_node_ind() const {return second_node_ind;}
 };
 
 class PolygonHelper {
@@ -74,9 +86,8 @@ void PolygonHelper::compute_outward_norm_vector(BoundaryEdge& edge) {
     const double x1 = edge.get_x1(), y1 = edge.get_y1();
     const double x2 = edge.get_x2(), y2 = edge.get_y2();
     double dir_x = x2 - x1, dir_y = y2 - y1;
-    double length = std::sqrt(dir_x * dir_x + dir_y + dir_y);
-    dir_x /= length, dir_y /= length;
-    double norm_x = -dir_y, norm_y = dir_x;
+    double length = std::sqrt(dir_x * dir_x + dir_y * dir_y);
+    double norm_x = -dir_y/length, norm_y = dir_x/length;
     double cross_product = dir_x * norm_y - dir_y * norm_x;
     if (cross_product > 0) {
         norm_x = - norm_x;
@@ -97,8 +108,8 @@ private:
     CoordArr x_bottombound, y_bottombound;
     CoordArr x_topbound, y_topbound;
     ElemConnArr ElemConnData;
-    EdgeConnArr NeumannBoundaryConditions;
-    std::vector<double> BoundaryFlux;
+    std::vector<BoundaryEdge> NeumannBoundaryConditions;
+    // FluxDataArr BoundaryFlux;
 
 public:
     Geometry() = default;
@@ -112,8 +123,7 @@ public:
     void transfiniteInterpolation();
     void generateStretchingGrid(double alpha, double eta1);
     void generateGridConnection();
-    void generateNeumannBoundaryNodeIndices();
-    void generateBoundaryFlux();
+    void generateNeumannBoundaryConditions(double Flux1, double Flux2, double Flux3, double Flux4);
 
 public:
     CoordArr get_x() const;
@@ -333,23 +343,54 @@ CoordArr Geometry::get_y() const {
     return y_coords;
 }
 
-void Geometry::generateNeumannBoundaryNodeIndices() {
+void Geometry::generateNeumannBoundaryConditions(double Flux1, double Flux2, double Flux3, double Flux4) {
     NeumannBoundaryConditions.clear();
     for (std::size_t i = 0; i < M; ++i) {
         std::size_t first_node_ind = i, second_node_ind = first_node_ind + 1;
-        NeumannBoundaryConditions.emplace_back(first_node_ind, second_node_ind);
+        double x1 = x[0][i], y1 = y[0][i];
+        double x2 = x[0][i + 1], y2 = y[0][i + 1];
+        BoundaryEdge edge;
+        edge.initNodeIndices(first_node_ind, second_node_ind);
+        edge.initEdgeCoordinates(x1, y1, x2, y2);
+        edge.initFlux(Flux1);
+        PolygonHelper::compute_outward_norm_vector(edge);
+        NeumannBoundaryConditions.push_back(edge);
     }
     for (std::size_t i = 0; i < N; ++i) {
         std::size_t first_node_ind = i * (M + 1) + M, second_node_ind = first_node_ind + M + 1;
-        NeumannBoundaryConditions.emplace_back(first_node_ind, second_node_ind);
+        double x1 = x[i][M], y1 = y[i][M];
+        double x2 = x[i + 1][M], y2 = y[i + 1][M];
+        BoundaryEdge edge;
+        edge.initNodeIndices(first_node_ind, second_node_ind);
+        edge.initEdgeCoordinates(x1, y1, x2, y2);
+        edge.initFlux(Flux2);
+        PolygonHelper::compute_outward_norm_vector(edge);
+        NeumannBoundaryConditions.push_back(edge);
     }
     for (int i = M; i > 0; --i) {
         std::size_t first_node_ind = N * (M + 1) + i, second_node_ind = first_node_ind - 1;
-        NeumannBoundaryConditions.emplace_back(first_node_ind, second_node_ind);
+        double x1 = x[N][i], y1 = y[N][i];
+        double x2 = x[N][i - 1], y2 = y[N][i - 1];
+        BoundaryEdge edge;
+        edge.initNodeIndices(first_node_ind, second_node_ind);
+        edge.initEdgeCoordinates(x1, y1, x2, y2);
+        edge.initFlux(Flux3);
+        PolygonHelper::compute_outward_norm_vector(edge);
+        NeumannBoundaryConditions.push_back(edge);
     }
     for (int i = N; i > 0; --i) {
         std::size_t first_node_ind = i * (M + 1), second_node_ind = first_node_ind - M - 1;
-        NeumannBoundaryConditions.emplace_back(first_node_ind, second_node_ind);
+        double x1 = x[i][0], y1 = y[i][0];
+        double x2 = x[i - 1][0], y2 = y[i - 1][0];
+        BoundaryEdge edge;
+        edge.initNodeIndices(first_node_ind, second_node_ind);
+        edge.initEdgeCoordinates(x1, y1, x2, y2);
+        edge.initFlux(Flux4);
+        PolygonHelper::compute_outward_norm_vector(edge);
+        NeumannBoundaryConditions.push_back(edge);
+    }
+    for (std::size_t i = 0; i < NeumannBoundaryConditions.size(); ++i) {
+        std::cout << NeumannBoundaryConditions[i].get_first_node_ind() << ", " << NeumannBoundaryConditions[i].get_second_node_ind() << std::endl;
     }
 }
 
