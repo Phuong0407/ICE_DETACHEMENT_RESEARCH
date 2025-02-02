@@ -22,11 +22,11 @@ private:
 
     const double CONV_TOL = 1.0E-6;
     const int MAX_ITER = 100000;
+    void multSparseMat(const std::vector<double>& X, std::vector<double>& Y) const;
 
 public:
     CSRSparseSolver() = default;
     void initSparseSolver(const std::vector<std::vector<double>>& SPARSE_MAT);
-    void multSparseMat(const std::vector<double>& X, std::vector<double>& Y) const;
     void solveSparseSystem(const std::vector<double>& RHS_VECT, std::vector<double>& X) const;
 };
 

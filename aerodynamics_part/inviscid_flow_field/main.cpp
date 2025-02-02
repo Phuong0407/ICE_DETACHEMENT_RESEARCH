@@ -1,4 +1,8 @@
 #include "geometry.h"
+#include "axisymmetric_fem.h"
+#include "csr_sparse_solver.h"
+#include "post_processing.h"
+
 #include <iostream>
 #include <vector>
 #include <fstream>
@@ -7,67 +11,89 @@
 int main() {
     Geometry G;
     G.initPhysicalDimensions(3,3,3,4,2);
-    G.initComputationalDimensions(5,5,5,5);
+    G.initComputationalDimensions(2,2,2,2);
     G.initCoordsArrSize();
     G.initGridStep();
     G.generateBoundaryNode();
     G.generateAlgebraicGrid();
-    G.generateEllipicGrid();
+    // G.generateEllipicGrid();
     G.generateGridConnection();
-    G.generateNeumannBoundaryNodeIndices();
+    G.generateNeumannBoundaryConditions(0.0, 4.0/3.0, 0.0, -1.0);
 
-    CoordArr x = G.get_x();
-    CoordArr y = G.get_y();
-    ElemConnArr c = G.getElementConnectionData();
+    std::vector<double> x = G.get_x();
+    std::vector<double> y = G.get_y();
+    std::vector<std::vector<std::size_t>> c = G.getElementConnectionData();
+    std::vector<BoundaryEdge> d = G.getNeumannBoundaryConditions();
+    AxisymmetricFiniteElement fem;
+    fem.computeGlobalStiffnessMatrix(x, y, c);
+    fem.computeNeumannBoundaryConditions(x, y, c, d);
+    fem.computeSolution();
+    std::vector<double> solution = fem.getSolution();
 
-    std::ofstream nodeFile("grid_points.dat");
-    std::ofstream connFile("grid_connections.dat");
+    // for (std::size_t i = 0; i < solution.size(); ++i) {
+    //     std::cout << "(" << x[i] << ", " << y[i] << ")" << solution[i] << std::endl;
+    // }
+    // std::cout << std::endl;
 
-    if (!nodeFile.is_open() || !connFile.is_open()) {
-        std::cerr << "Error: Unable to open output files!" << std::endl;
-        return 1;
+    std::size_t number_nodes = x.size();
+    Gradient_Recovery g;
+    g.initNumberOfNode(number_nodes);
+    g.generateNodeRecoveryPatchConnManager(c);
+    g.generateGradientRecovery(x, y, solution);
+    std::vector<double> dev_x = g.get_dev_x();
+    std::vector<double> dev_y = g.get_dev_y();
+    
+    for (std::size_t i = 0; i < x.size(); ++i) {
+        std::cout << "(Dev_x, Dev y)("<< x[i] << ", " << y[i] << ") = " << dev_x[i] << ", " << dev_y[i] << std::endl;
     }
 
-    if (!x.empty()) {
-        for (std::size_t i = 0; i < x.size(); ++i) {
-            nodeFile << x[i] << " " << y[i] << "\n";
-        }
-        nodeFile << "\n";
-    } else {
-        std::cerr << "Warning: No grid points found!" << std::endl;
-    }
-    nodeFile.close();
+    // std::ofstream nodeFile("grid_points.dat");
+    // std::ofstream connFile("grid_connections.dat");
 
-    if (!c.empty()) {
-        for (const auto &d : c) {
-            std::size_t idx1 = d[0];
-            std::size_t idx2 = d[1];
-            std::size_t idx3 = d[2];
+    // if (!nodeFile.is_open() || !connFile.is_open()) {
+    //     std::cerr << "Error: Unable to open output files!" << std::endl;
+    //     return 1;
+    // }
 
-            connFile << x[idx1] << " " << y[idx1] << "\n";
-            connFile << x[idx2] << " " << y[idx2] << "\n\n";
+    // if (!x.empty()) {
+    //     for (std::size_t i = 0; i < x.size(); ++i) {
+    //         nodeFile << x[i] << " " << y[i] << "\n";
+    //     }
+    //     nodeFile << "\n";
+    // } else {
+    //     std::cerr << "Warning: No grid points found!" << std::endl;
+    // }
+    // nodeFile.close();
 
-            connFile << x[idx2] << " " << y[idx2] << "\n";
-            connFile << x[idx3] << " " << y[idx3] << "\n\n";
+    // if (!c.empty()) {
+    //     for (const auto &d : c) {
+    //         std::size_t idx1 = d[0];
+    //         std::size_t idx2 = d[1];
+    //         std::size_t idx3 = d[2];
 
-            connFile << x[idx3] << " " << y[idx3] << "\n";
-            connFile << x[idx1] << " " << y[idx1] << "\n\n";
-        }
-    } else {
-        std::cerr << "Warning: No connectivity data found!" << std::endl;
-    }
-    connFile.close();
+    //         connFile << x[idx1] << " " << y[idx1] << "\n";
+    //         connFile << x[idx2] << " " << y[idx2] << "\n\n";
+    //         connFile << x[idx2] << " " << y[idx2] << "\n";
+    //         connFile << x[idx3] << " " << y[idx3] << "\n\n";
 
-    std::ofstream scriptFile("plot_grid.gnu");
-    scriptFile << "set title 'Computational Mesh'\n";
-    scriptFile << "set xlabel 'X-axis'\n";
-    scriptFile << "set ylabel 'Y-axis'\n";
-    scriptFile << "set grid\n";
-    scriptFile << "set key off\n";
-    scriptFile << "plot 'grid_points.dat' with points pt 7 ps 1 lc rgb 'blue', \\\n";
-    scriptFile << "     'grid_connections.dat' with lines lc rgb 'black'\n";
-    scriptFile.close();
+    //         connFile << x[idx3] << " " << y[idx3] << "\n";
+    //         connFile << x[idx1] << " " << y[idx1] << "\n\n";
+    //     }
+    // } else {
+    //     std::cerr << "Warning: No connectivity data found!" << std::endl;
+    // }
+    // connFile.close();
 
-    system("gnuplot -p plot_grid.gnu");
+    // std::ofstream scriptFile("plot_grid.gnu");
+    // scriptFile << "set title 'Computational Mesh'\n";
+    // scriptFile << "set xlabel 'X-axis'\n";
+    // scriptFile << "set ylabel 'Y-axis'\n";
+    // scriptFile << "set grid\n";
+    // scriptFile << "set key off\n";
+    // scriptFile << "plot 'grid_points.dat' with points pt 7 ps 1 lc rgb 'blue', \\\n";
+    // scriptFile << "     'grid_connections.dat' with lines lc rgb 'black'\n";
+    // scriptFile.close();
+
+    // system("gnuplot -p plot_grid.gnu");
     return 0;
 }

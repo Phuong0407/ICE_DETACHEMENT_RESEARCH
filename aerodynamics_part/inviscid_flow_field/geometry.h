@@ -27,15 +27,6 @@
 #include <stdexcept>
 #include <utility>
 
-using Size = std::size_t;
-using Ind = std::size_t;
-using CoordArr = std::vector<double>;
-using Coord2DArr = std::vector<CoordArr>;
-using ElemConnArr = std::vector<std::vector<std::size_t>>;
-using NodeIndArr = std::vector<std::size_t>;
-using EdgeConn = std::pair<std::size_t, std::size_t>;
-using FluxDataArr = std::vector<double>;
-
 constexpr unsigned int OUTSIDE = 0;
 constexpr unsigned int INSIDE = 1;
 constexpr unsigned int INTERSECTING = 2;
@@ -44,14 +35,14 @@ constexpr unsigned int ON_BOUNDARY = 3;
 
 class BoundaryEdge {
 private:
-    Ind first_node_ind, second_node_ind;
+    std::size_t first_node_ind, second_node_ind;
     double x1, x2, y1, y2;
     double nx, ny;
     double flux;
 
 public:
     BoundaryEdge() = default;
-    void initNodeIndices(Ind first_node_ind, Ind second_node_ind) {
+    void initNodeIndices(std::size_t first_node_ind, std::size_t second_node_ind) {
         this->first_node_ind = first_node_ind;
         this->second_node_ind = second_node_ind;
     }
@@ -73,8 +64,8 @@ public:
     double get_nx() const {return nx;}
     double get_ny() const {return ny;}
     double get_flux() const {return flux;}
-    Ind get_first_node_ind() const {return first_node_ind;}
-    Ind get_second_node_ind() const {return second_node_ind;}
+    std::size_t get_first_node_ind() const {return first_node_ind;}
+    std::size_t get_second_node_ind() const {return second_node_ind;}
 };
 
 class PolygonHelper {
@@ -101,20 +92,19 @@ class Geometry {
 private:
     double L1, L2, H1, H2, H3;
     double dx1, dx2, dx3, dy1, dy2;
-    Size N, M, M1, M2, M3;
-    Coord2DArr x, y;
-    CoordArr x_leftbound, y_leftbound;
-    CoordArr x_rightbound, y_rightbound;
-    CoordArr x_bottombound, y_bottombound;
-    CoordArr x_topbound, y_topbound;
-    ElemConnArr ElemConnData;
+    std::size_t N, M, M1, M2, M3;
+    std::vector<std::vector<double>> x, y;
+    std::vector<double> x_leftbound, y_leftbound;
+    std::vector<double> x_rightbound, y_rightbound;
+    std::vector<double> x_bottombound, y_bottombound;
+    std::vector<double> x_topbound, y_topbound;
+    std::vector<std::vector<std::size_t>> ElemConnData;
     std::vector<BoundaryEdge> NeumannBoundaryConditions;
-    // FluxDataArr BoundaryFlux;
 
 public:
     Geometry() = default;
     void initPhysicalDimensions(double H1, double H2, double H3, double L1, double L2);
-    void initComputationalDimensions(Size M1, Size M2, Size M3, Size N);
+    void initComputationalDimensions(std::size_t M1, std::size_t M2, std::size_t M3, std::size_t N);
     void initGridStep();
     void initCoordsArrSize();
     void generateAlgebraicGrid();
@@ -124,13 +114,14 @@ public:
     void generateStretchingGrid(double alpha, double eta1);
     void generateGridConnection();
     void generateNeumannBoundaryConditions(double Flux1, double Flux2, double Flux3, double Flux4);
+    std::vector<BoundaryEdge> getNeumannBoundaryConditions() const;
 
 public:
-    CoordArr get_x() const;
-    CoordArr get_y() const;
-    const ElemConnArr& getElementConnectionData() const {return ElemConnData;}
-    Size getTotalHorizontalElements() const {return M;}
-    Size getTotalVerticalElements() const {return N;}
+    std::vector<double> get_x() const;
+    std::vector<double> get_y() const;
+    const std::vector<std::vector<std::size_t>>& getElementConnectionData() const {return ElemConnData;}
+    std::size_t getTotalHorizontalElements() const {return M;}
+    std::size_t getTotalVerticalElements() const {return N;}
 };
 
 void Geometry::initPhysicalDimensions(double H1, double H2, double H3, double L1, double L2) {
@@ -141,7 +132,7 @@ void Geometry::initPhysicalDimensions(double H1, double H2, double H3, double L1
     this->L2 = L2;
 }
 
-void Geometry::initComputationalDimensions(Size M1, Size M2, Size M3, Size N) {
+void Geometry::initComputationalDimensions(std::size_t M1, std::size_t M2, std::size_t M3, std::size_t N) {
     this->M1 = M1;
     this->M2 = M2;
     this->M3 = M3;
@@ -171,20 +162,20 @@ void Geometry::initCoordsArrSize() {
 }
 
 void Geometry::generateAlgebraicGrid() {
-    for (Ind i = 0; i <= N; ++i) {
-        for (Ind j = 0; j <= M1; ++j)
+    for (std::size_t i = 0; i <= N; ++i) {
+        for (std::size_t j = 0; j <= M1; ++j)
             x[i][j] = dx1 * j, y[i][j] = dy1 * i;
 
         double a = ((dy2 - dy1) * i + L1 - L2) / H2;
         double b = dy1 * i - a * H1;
-        for (Ind j = M1 + 1; j <= M1 + M2; ++j) {
+        for (std::size_t j = M1 + 1; j <= M1 + M2; ++j) {
             double x_1 = H1 + dx2 * (j - M1);
             double y_1 = a * x_1 + b;
             x[i][j] = x_1;
             y[i][j] = y_1;
         }
 
-        for (Ind j = M1 + M2 + 1; j <= M; ++j) {
+        for (std::size_t j = M1 + M2 + 1; j <= M; ++j) {
             x[i][j] = H1 + H2 + dx3 * (j - M1 - M2);
             y[i][j] = L1 - L2 + dy2 * i;
         }
@@ -195,11 +186,11 @@ void Geometry::generateEllipicGrid() {
     if (x.empty() || y.empty())
         throw std::runtime_error("ERROR: ALGEBRAIC-GENERATING COORDINATES ARRAY IS EMPTY. GENERATE IT FIRST BY USING generateAlgebraicGrid()!");
 
-    Coord2DArr new_x(N + 1, std::vector<double>(M + 1, 0.0));
-    Coord2DArr new_y(N + 1, std::vector<double>(M + 1, 0.0));
-    Coord2DArr alpha(N + 1, std::vector<double>(M + 1, 0.0));
-    Coord2DArr beta(N + 1, std::vector<double>(M + 1, 0.0));
-    Coord2DArr gamma(N + 1, std::vector<double>(M + 1, 0.0));
+    std::vector<std::vector<double>> new_x(N + 1, std::vector<double>(M + 1, 0.0));
+    std::vector<std::vector<double>> new_y(N + 1, std::vector<double>(M + 1, 0.0));
+    std::vector<std::vector<double>> alpha(N + 1, std::vector<double>(M + 1, 0.0));
+    std::vector<std::vector<double>> beta(N + 1, std::vector<double>(M + 1, 0.0));
+    std::vector<std::vector<double>> gamma(N + 1, std::vector<double>(M + 1, 0.0));
     new_x = x, new_y = y;
 
     double min_err = 1e-6;
@@ -324,8 +315,8 @@ void Geometry::generateGridConnection() {
     }
 }
 
-CoordArr Geometry::get_x() const {
-    CoordArr x_coords;
+std::vector<double> Geometry::get_x() const {
+    std::vector<double> x_coords;
     for (std::size_t i = 0; i < N + 1; ++i) {
         for (std::size_t j = 0; j < M + 1; ++j) {
             x_coords.push_back(x[i][j]);
@@ -333,8 +324,8 @@ CoordArr Geometry::get_x() const {
     }
     return x_coords;
 }
-CoordArr Geometry::get_y() const {
-    CoordArr y_coords;
+std::vector<double> Geometry::get_y() const {
+    std::vector<double> y_coords;
     for (std::size_t i = 0; i < N + 1; ++i) {
         for (std::size_t j = 0; j < M + 1; ++j) {
             y_coords.push_back(y[i][j]);
@@ -389,9 +380,11 @@ void Geometry::generateNeumannBoundaryConditions(double Flux1, double Flux2, dou
         PolygonHelper::compute_outward_norm_vector(edge);
         NeumannBoundaryConditions.push_back(edge);
     }
-    for (std::size_t i = 0; i < NeumannBoundaryConditions.size(); ++i) {
-        std::cout << NeumannBoundaryConditions[i].get_first_node_ind() << ", " << NeumannBoundaryConditions[i].get_second_node_ind() << std::endl;
-    }
 }
+
+std::vector<BoundaryEdge> Geometry::getNeumannBoundaryConditions() const {
+    return NeumannBoundaryConditions;
+}
+
 
 #endif
