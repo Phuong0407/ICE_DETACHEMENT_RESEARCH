@@ -14,17 +14,14 @@ void safe_free(void **ptr) {
 }
 
 typedef struct {
-    size_t id;
     double x, y;
 } node;
 
 typedef struct {
-    size_t id;
     size_t node_inds[3];
 } triangle_element;
 
 typedef struct {
-    size_t id;
     size_t node_inds[2];
     double flux;
 } edge;
@@ -79,7 +76,6 @@ mesh2D* generate_algebraic_grid(double L1, double L2, double H1, double H2, doub
 
     for (size_t i = 0; i <= N; ++i) {
         for (size_t j = 0; j <= M1; ++j) {
-            mesh->nodes[i * (M + 1) + j].id = i * (M + 1) + j;
             mesh->nodes[i * (M + 1) + j].x = dx1 * j;
             mesh->nodes[i * (M + 1) + j].y = dy1 * i;
         }
@@ -89,13 +85,12 @@ mesh2D* generate_algebraic_grid(double L1, double L2, double H1, double H2, doub
         for (size_t j = M1 + 1; j <= M1 + M2; ++j) {
             double x_1 = H1 + dx2 * (j - M1);
             double y_1 = a * x_1 + b;
-            mesh->nodes[i * (M + 1) + j].id = i * (M + 1) + j;
+
             mesh->nodes[i * (M + 1) + j].x = x_1;
             mesh->nodes[i * (M + 1) + j].y = y_1;
         }
 
         for (size_t j = M1 + M2 + 1; j <= M; ++j) {
-            mesh->nodes[i * (M + 1) + j].id = i * (M + 1) + j;
             mesh->nodes[i * (M + 1) + j].x = H1 + H2 + dx3 * (j - M1 - M2);
             mesh->nodes[i * (M + 1) + j].y = L1 - L2 + dy2 * i;
         }
@@ -116,13 +111,11 @@ void generate_grid_connection(mesh2D *mesh) {
             size_t n3 = n2 + M + 1;
             size_t n4 = n1 + M + 1;
 
-            mesh->triangle_elements[elem_id].id = elem_id;
             mesh->triangle_elements[elem_id].node_inds[0] = n1;
             mesh->triangle_elements[elem_id].node_inds[1] = n2;
             mesh->triangle_elements[elem_id].node_inds[2] = n3;
             elem_id++;
 
-            mesh->triangle_elements[elem_id].id = elem_id;
             mesh->triangle_elements[elem_id].node_inds[0] = n1;
             mesh->triangle_elements[elem_id].node_inds[1] = n3;
             mesh->triangle_elements[elem_id].node_inds[2] = n4;
@@ -258,7 +251,6 @@ mesh2D* generate_stretching_grid(double alpha, double eta1, node *bottom, node *
         for (size_t j = 0; j <= M; ++j) {
             size_t ij = i * (M + 1) + j;
             double xi = j * dxi;
-            mesh->nodes[ij].id = ij;
             mesh->nodes[ij].x = bottom[j].x;
             if (eta <= eta1) {
                 mesh->nodes[ij].y = (top[j].y - bottom[j].y) * eta1 * (exp(alpha * eta / eta1) - 1.0) / (exp(alpha) - 1) + bottom[j].y;
@@ -282,7 +274,6 @@ mesh2D* generation_by_transfinite_interpolation(size_t N, size_t M, node *bottom
         for (size_t j = 0; j <= M; ++j) {
             double xi = dxi * j;
             size_t ij = i * (M + 1) + j;
-            mesh->nodes[ij].id = ij;
             mesh->nodes[ij].x = (1 - xi) * left[i].x + xi * right[i].x
                      + (1 - eta) * bottom[j].x + eta * top[j].x
                      - (1- xi) * (1 - eta) * bottom[0].x - (1 - xi) * eta * top[0].x
