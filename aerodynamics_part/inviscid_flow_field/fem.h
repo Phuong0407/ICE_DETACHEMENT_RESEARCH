@@ -6,6 +6,13 @@
 #include <stddef.h>
 #include <math.h>
 
+void safe_free(void **ptr) {
+    if (*ptr) {
+        free(*ptr);
+        *ptr = NULL;
+    }
+}
+
 typedef struct {
     size_t id;
     double x, y;
@@ -32,6 +39,23 @@ typedef struct {
     size_t *dirichlet_inds;
 } mesh2D;
 
+
+
+
+
+mesh2D *init_mesh2D(size_t num_elements_hor, size_t num_elements_ver);
+mesh2D* generate_algebraic_grid(double L1, double L2, double H1, double H2, double H3, size_t N, size_t M1, size_t M2, size_t M3);
+void generate_grid_connection(mesh2D *mesh);
+void generate_elliptic_mesh(mesh2D *mesh);
+void generate_boundary_node(double L1, double L2, double H1, double H2, double H3, size_t M1, size_t M2, size_t M3, size_t N, node **bottom, node **top, node **left, node **right);
+mesh2D* generate_stretching_grid(double alpha, double eta1, node *bottom, node *top, size_t M, size_t N);
+mesh2D* generation_by_transfinite_interpolation(size_t N, size_t M, node *bottom, node *top, node *left, node *right);
+void visualize_mesh_via_gnu_plot(mesh2D *mesh);
+
+
+
+
+
 mesh2D *init_mesh2D(size_t num_elements_hor, size_t num_elements_ver) {
     mesh2D *mesh = (mesh2D*)malloc(sizeof(mesh2D));
     mesh->num_elements_hor = num_elements_hor;
@@ -42,6 +66,8 @@ mesh2D *init_mesh2D(size_t num_elements_hor, size_t num_elements_ver) {
     mesh->triangle_elements = (triangle_element*)malloc(mesh->num_elements * sizeof(triangle_element));
     return mesh;
 }
+
+
 
 mesh2D* generate_algebraic_grid(double L1, double L2, double H1, double H2, double H3, size_t N, size_t M1, size_t M2, size_t M3) {
     size_t M = M1 + M2 + M3;
@@ -74,7 +100,14 @@ mesh2D* generate_algebraic_grid(double L1, double L2, double H1, double H2, doub
             mesh->nodes[i * (M + 1) + j].y = L1 - L2 + dy2 * i;
         }
     }
+    return mesh;
+}
 
+
+
+void generate_grid_connection(mesh2D *mesh) {
+    size_t N = mesh->num_elements_ver;
+    size_t M = mesh->num_elements_hor;
     size_t elem_id = 0;
     for (size_t i = 0; i < N; ++i) {
         for (size_t j = 0; j < M; ++j) {
@@ -96,8 +129,9 @@ mesh2D* generate_algebraic_grid(double L1, double L2, double H1, double H2, doub
             elem_id++;
         }
     }
-    return mesh;
 }
+
+
 
 void generate_elliptic_mesh(mesh2D *mesh) {
     size_t num_nodes = mesh->num_nodes;
@@ -168,6 +202,102 @@ void generate_elliptic_mesh(mesh2D *mesh) {
     }
 }
 
+
+
+void generate_boundary_node(double L1, double L2, double H1, double H2, double H3,
+                            size_t M1, size_t M2, size_t M3, size_t N, 
+                            node **bottom, node **top, node **left, node **right) {
+    size_t M = M1 + M2 + M3;
+
+    double dy1 = L1 / N, dy2 = L2 / N;
+    double dx1 = H1 / M1, dx2 = H2 / M2, dx3 = H3 / M3;
+
+    *bottom = (node*)calloc(M + 1, sizeof(node));
+    *top = (node*)calloc(M + 1, sizeof(node));
+    *left = (node*)calloc(N + 1, sizeof(node));
+    *right = (node*)calloc(N + 1, sizeof(node));
+
+    for (size_t i = 0; i <= M1; ++i) {
+        double x = H1 / M1 * i;
+        (*bottom)[i].x = x;
+        (*bottom)[i].y = 0.0;
+        (*top)[i].x = x;
+        (*top)[i].y = L1;
+    }
+    double a = (L1 - L2) / H2;
+    for (size_t i = M1 + 1; i <= M1 + M2; ++i) {
+        double x = H1 + dx2 * (i - M1);
+        double y = a * dx2 * (i - M1);
+        (*bottom)[i].x = x;
+        (*bottom)[i].y = y;
+        (*top)[i].x = x;
+        (*top)[i].y = L1;
+    }
+    for (size_t i = M1 + M2 + 1; i <= M; ++i) {
+        double x = H1 + H2 + dx3 * (i - M1 - M2);
+        (*bottom)[i].x = x;
+        (*bottom)[i].y = L1 - L2;
+        (*top)[i].x = x;
+        (*top)[i].y = L1;
+    }
+    for (size_t i = 0; i <= N; ++i) {
+        (*left)[i].x = 0.0;
+        (*right)[i].x = H1 + H2 + H3;
+        (*left)[i].y = L1 / N * i;
+        (*right)[i].y = L1 - L2 + L2 / N * i;
+    }
+}
+
+
+
+mesh2D* generate_stretching_grid(double alpha, double eta1, node *bottom, node *top, size_t M, size_t N) {
+    mesh2D *mesh = init_mesh2D(M, N);
+    double dxi = 1.0 / M, deta = 1.0 / N;
+    for (size_t i = 0; i <= N; ++i) {
+        double eta = i * deta;
+        for (size_t j = 0; j <= M; ++j) {
+            size_t ij = i * (M + 1) + j;
+            double xi = j * dxi;
+            mesh->nodes[ij].id = ij;
+            mesh->nodes[ij].x = bottom[j].x;
+            if (eta <= eta1) {
+                mesh->nodes[ij].y = (top[j].y - bottom[j].y) * eta1 * (exp(alpha * eta / eta1) - 1.0) / (exp(alpha) - 1) + bottom[j].y;
+            }
+            else {
+                mesh->nodes[ij].y = (top[j].y - bottom[j].y) * (1.0 - (1.0 - eta1) * (exp(alpha * (1 - eta) / (1 - eta1)) - 1.0) / (exp(alpha) - 1)) + bottom[j].y;
+            }
+        }
+    }
+    return mesh;
+}
+
+
+
+mesh2D* generation_by_transfinite_interpolation(size_t N, size_t M, node *bottom, node *top, node *left, node *right) {
+    mesh2D *mesh = init_mesh2D(M, N);
+    double dxi = 1.0 / M;
+    double deta = 1.0 / N;
+    for (size_t i = 0; i <= N; ++i) {
+        double eta = deta * i;
+        for (size_t j = 0; j <= M; ++j) {
+            double xi = dxi * j;
+            size_t ij = i * (M + 1) + j;
+            mesh->nodes[ij].id = ij;
+            mesh->nodes[ij].x = (1 - xi) * left[i].x + xi * right[i].x
+                     + (1 - eta) * bottom[j].x + eta * top[j].x
+                     - (1- xi) * (1 - eta) * bottom[0].x - (1 - xi) * eta * top[0].x
+                     - (1 - eta) * xi * bottom[M].x - xi * eta * top[M].x;
+            mesh->nodes[ij].y = (1 - xi) * left[i].y + xi * right[i].y +
+                      (1 - eta) * bottom[j].y + eta * top[j].y -
+                      (1- xi) * (1 - eta) * bottom[0].y - (1 - xi) * eta * top[0].y -
+                      (1 - eta) * xi * bottom[M].y - xi * eta * top[M].y;
+        }        
+    }
+    return mesh;
+}
+
+
+
 void visualize_mesh_via_gnu_plot(mesh2D *mesh) {
     FILE *nodeFile = fopen("grid_points.dat", "w");
     FILE *connFile = fopen("grid_connections.dat", "w");
@@ -214,13 +344,6 @@ void visualize_mesh_via_gnu_plot(mesh2D *mesh) {
 
     system("gnuplot -p plot_grid.gnu");
 }
-
-
-
-
-
-
-
 
 
 
