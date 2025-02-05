@@ -11,7 +11,7 @@
 int main() {
     Geometry G;
     G.initPhysicalDimensions(3,3,3,4,2);
-    G.initComputationalDimensions(2,2,2,2);
+    G.initComputationalDimensions(10,300,10,100);
     G.initCoordsArrSize();
     G.initGridStep();
     G.generateBoundaryNode();
@@ -43,9 +43,27 @@ int main() {
     std::vector<double> dev_x = g.get_dev_x();
     std::vector<double> dev_y = g.get_dev_y();
     
-    for (std::size_t i = 0; i < x.size(); ++i) {
-        std::cout << "(Dev_x, Dev y)("<< x[i] << ", " << y[i] << ") = " << dev_x[i] << ", " << dev_y[i] << std::endl;
+    // for (std::size_t i = 0; i < x.size(); ++i) {
+    //     std::cout << "(Dev_x, Dev y)("<< x[i] << ", " << y[i] << ") = " << dev_x[i] << ", " << dev_y[i] << std::endl;
+    // }
+
+    // Open a file for writing
+    std::ofstream outFile("output.txt");
+
+    // Check if the file is open
+    if (!outFile.is_open()) {
+        std::cerr << "Error: Unable to open file for writing!" << std::endl;
+        return 1;
     }
+
+    // Write the data to the file
+    for (std::size_t i = 0; i < x.size(); ++i) {
+        outFile << "(Dev_x, Dev_y)(" << x[i] << ", " << y[i] << ") = "
+                << dev_x[i] << ", " << dev_y[i] << std::endl;
+    }
+
+    // Close the file
+    outFile.close();
 
     // std::ofstream nodeFile("grid_points.dat");
     // std::ofstream connFile("grid_connections.dat");

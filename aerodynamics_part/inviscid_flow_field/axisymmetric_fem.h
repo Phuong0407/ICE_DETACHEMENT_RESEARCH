@@ -64,11 +64,11 @@ void AxisymmetricFiniteElement::computeGlobalStiffnessMatrix(const std::vector<d
             }
         }
     }
-    for (const auto& elem : GloMat) {
-        for (const auto & a : elem) {
-            std::cout << a << " ";
-        } std::cout << std::endl;
-    }
+    // for (const auto& elem : GloMat) {
+    //     for (const auto & a : elem) {
+    //         std::cout << a << " ";
+    //     } std::cout << std::endl;
+    // }
 }
 
 std::vector<std::vector<double>> AxisymmetricFiniteElement::computeLocalStiffnessMatrix(double x1, double y1, double x2, double y2, double x3, double y3) {
@@ -154,7 +154,7 @@ std::tuple<double, double, double> AxisymmetricFiniteElement::computeShapeFuncti
         N2 += (b2 + c2 * x_ + d2 * y_) * y_ * weight;
         N3 += (b3 + c3 * x_ + d3 * y_) * y_ * weight;
     }
-    double factor = -M_PI * Flux / Area;
+    double factor = M_PI * Flux / Area;
     N1 *= factor * edge_length / 2.0;
     N2 *= factor * edge_length / 2.0;
     N3 *= factor * edge_length / 2.0;
