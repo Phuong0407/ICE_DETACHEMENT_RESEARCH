@@ -14,10 +14,10 @@ module csr_sparse_solver
 
 contains
 
-    subroutine init_sparse_solver(sparse_matrix, n) bind(C, name="init_sparse_solver")
+     subroutine init_sparse_solver(sparse_matrix, n) bind(C, name="init_sparse_solver")
         implicit none
         integer(c_int), intent(in) :: n
-        real(8), intent(in), dimension(n, n) :: sparse_matrix
+        real(8), intent(in), dimension(n * n) :: sparse_matrix
         integer :: i, j, index
 
         non_zero_element = 0
@@ -25,13 +25,13 @@ contains
 
         matrix_norm = 0.0
         do i = 1, size_matrix
-            matrix_norm = max(matrix_norm, sum(abs(sparse_matrix(i, :))))
+            matrix_norm = max(matrix_norm, sum(abs(sparse_matrix((i-1) * n + 1 : i * n))))
         end do
         zero_compared_tol = epsilon(1.0) * matrix_norm
 
         do i = 1, size_matrix
             do j = 1, size_matrix
-                if (abs(sparse_matrix(i, j)) > zero_compared_tol) then
+                if (abs(sparse_matrix((i-1) * n + j)) > zero_compared_tol) then
                     non_zero_element = non_zero_element + 1
                 end if
             end do
@@ -46,8 +46,8 @@ contains
         row_ptr(1) = 1
         do i = 1, size_matrix
             do j = 1, size_matrix
-                if (abs(sparse_matrix(i, j)) > zero_compared_tol) then
-                    val(index) = sparse_matrix(i, j)
+                if (abs(sparse_matrix((i - 1) * n + j)) > zero_compared_tol) then
+                    val(index) = sparse_matrix((i-1) * n + j)
                     col_idx(index) = j
                     index = index + 1
                 end if

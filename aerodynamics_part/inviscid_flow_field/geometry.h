@@ -23,6 +23,7 @@ typedef struct {
 
 typedef struct {
     size_t node_inds[2];
+    size_t element_indx;
     double flux;
 } edge;
 
@@ -295,44 +296,48 @@ mesh2D* generation_by_transfinite_interpolation(size_t N, size_t M, node *bottom
 void generate_neumann_boundary_conditions(double flux1, double flux2, double flux3, double flux4, mesh2D *mesh) {
     size_t M = mesh->num_elements_hor;
     size_t N = mesh->num_elements_ver;
-    printf("%zu\n", M);
-    printf("%zu\n", N);
 
     mesh->num_neumann_edges = 2 * (M + N);
     mesh->neuman_bound = (edge*)malloc(mesh->num_neumann_edges * sizeof(edge));
     size_t idx_neumann = 0;
-
+    size_t element_idx = 0;
     for (size_t i = 0; i < M; ++i) {
         size_t idx_node1 = i, idx_node2 = idx_node1 + 1;
+        mesh->neuman_bound[idx_neumann].element_indx = element_idx;
         mesh->neuman_bound[idx_neumann].node_inds[0] = idx_node1;
         mesh->neuman_bound[idx_neumann].node_inds[1] = idx_node2;
         mesh->neuman_bound[idx_neumann].flux = flux1;
+        element_idx += 2;
         idx_neumann++;
     }
     for (size_t i = 0; i < N; ++i) {
         size_t idx_node1 = i * (M + 1) + M, idx_node2 = idx_node1 + M + 1;
+        mesh->neuman_bound[idx_neumann].element_indx = element_idx;
         mesh->neuman_bound[idx_neumann].node_inds[0] = idx_node1;
         mesh->neuman_bound[idx_neumann].node_inds[1] = idx_node2;
         mesh->neuman_bound[idx_neumann].flux = flux2;
+        element_idx += 2 * M;
         idx_neumann++;
     }
+    element_idx++;
     for (int i = M; i > 0; --i) {
         size_t idx_node1 = N * (M + 1) + i, idx_node2 = idx_node1 - 1;
+        mesh->neuman_bound[idx_neumann].element_indx = element_idx;
         mesh->neuman_bound[idx_neumann].node_inds[0] = idx_node1;
         mesh->neuman_bound[idx_neumann].node_inds[1] = idx_node2;
         mesh->neuman_bound[idx_neumann].flux = flux3;
+        element_idx -= 2;
         idx_neumann++;
     }
     for (int i = N; i > 0; --i) {
         size_t idx_node1 = i * (M + 1), idx_node2 = idx_node1 - M - 1;
+        size_t element_idx = 2 * i;
+        mesh->neuman_bound[idx_neumann].element_indx = element_idx;
         mesh->neuman_bound[idx_neumann].node_inds[0] = idx_node1;
         mesh->neuman_bound[idx_neumann].node_inds[1] = idx_node2;
         mesh->neuman_bound[idx_neumann].flux = flux4;
+        element_idx -= 2 * M;
         idx_neumann++;
-    }
-    printf("FUCK YOU!\n");
-    for (size_t i = 0; i < mesh->num_neumann_edges; ++i) {
-        printf("neuman_bound_flux[%d] = %lf\n", i, mesh->neuman_bound[i].flux);
     }
 }
 

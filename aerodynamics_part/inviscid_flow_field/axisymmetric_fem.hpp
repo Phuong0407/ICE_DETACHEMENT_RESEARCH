@@ -1,7 +1,6 @@
 #ifndef AXISYMMETRIC_FINITE_ELEMENT_METHOD_H
 #define AXISYMMETRIC_FINITE_ELEMENT_METHOD_H
 
-// #include "geometry.h"
 #include "csr_sparse_solver.hpp"
 #include <cmath>
 #include <vector>
@@ -64,11 +63,6 @@ void AxisymmetricFiniteElement::computeGlobalStiffnessMatrix(const std::vector<d
             }
         }
     }
-    // for (const auto& elem : GloMat) {
-    //     for (const auto & a : elem) {
-    //         std::cout << a << " ";
-    //     } std::cout << std::endl;
-    // }
 }
 
 std::vector<std::vector<double>> AxisymmetricFiniteElement::computeLocalStiffnessMatrix(double x1, double y1, double x2, double y2, double x3, double y3) {
@@ -109,31 +103,22 @@ void AxisymmetricFiniteElement::computeNeumannBoundaryConditions(const std::vect
         for (const auto& element : ElemConnData) {
             if (element[0] == node1 && element[1] == node2) {
                 node3 = element[2];
-                x1 = x[node1], y1 = y[node1];
-                x2 = x[node2], y2 = y[node2];
-                x3 = x[node3], y3 = y[node3];
             } 
             else if (element[1] == node1 && element[2] == node2) {
                 node3 = element[0];
-                x1 = x[node1], y1 = y[node1];
-                x2 = x[node2], y2 = y[node2];
-                x3 = x[node3], y3 = y[node3];
             } 
             else if (element[2] == node1 && element[0] == node2) {
                 node3 = element[1];
-                x1 = x[node1], y1 = y[node1];
-                x2 = x[node2], y2 = y[node2];
-                x3 = x[node3], y3 = y[node3];
             }
+            x1 = x[node1], y1 = y[node1];
+            x2 = x[node2], y2 = y[node2];
+            x3 = x[node3], y3 = y[node3];
         }
         auto [N1, N2, N3] = computeShapeFunctionContributions(x1, y1, x2, y2, x3, y3, Gauss8Point, Flux);
         ForceMat[node1] += N1;
         ForceMat[node2] += N2;
         ForceMat[node3] += N3;
     }
-    // for (std::size_t i = 0; i < ForceMat.size(); ++i) {
-    //     std::cout << ForceMat[i] << std::endl;
-    // }
 }
 
 std::tuple<double, double, double> AxisymmetricFiniteElement::computeShapeFunctionContributions(double x1, double y1, double x2, double y2, double x3, double y3, const GaussQuadrature8Point& Gauss8Point, double Flux) {

@@ -80,8 +80,6 @@ double* compute_global_stiffness_matrix(const mesh2D *mesh) {
 
     double *global_stiffness_matrix;
     global_stiffness_matrix = (double*)calloc(num_nodes * num_nodes, sizeof(double*));
-    // for (size_t i = 0; i < num_nodes; ++i)
-        // global_stiffness_matrix[i] = (double*)calloc(num_nodes, sizeof(double));
 
     size_t  num_elements = mesh->num_elements;
     for (size_t idx_elem = 0; idx_elem < num_elements; ++idx_elem) {
@@ -104,19 +102,17 @@ double* compute_global_stiffness_matrix(const mesh2D *mesh) {
             }
         }
     }
-    // for (size_t i = 0; i < num_nodes; ++i) {
-    //     for (size_t j = 0; j < num_nodes; ++j) {
-    //         printf(" %f", global_stiffness_matrix[i * num_nodes + j]);
-    //     } printf("\n");
-    // }
     return global_stiffness_matrix;
 }
 
 
 
 void apply_neumann_boundary_conditions(const mesh2D *mesh, double *force_matrix) {
-    if (!force_matrix)
-        fprintf(stderr, "EMPTY FORCE MAT, PLEASE INITIALIZE THE FORCE MAT BEFORE APPLY NEUMANN BOUNDARY CONDITIONS. THE PROGRAM TERMINATES NOW!");
+    if (!force_matrix) {
+        fprintf(stderr, "FORCE MATRIX IS NULL. PLEASE INITIALIZE IT BEFORE APPLYING NEUMANN BOUNDARY CONDITIONS. EXITING.\n");
+        exit(EXIT_FAILURE);
+    }
+
     
     size_t n = mesh->num_neumann_edges;
     if (n == 0) return;
@@ -124,30 +120,31 @@ void apply_neumann_boundary_conditions(const mesh2D *mesh, double *force_matrix)
     for (size_t i = 0; i < n; ++i) {
         double flux = mesh->neuman_bound[i].flux;
         if (fabs(flux) < 1e-12) continue;
-
+        size_t idx_elem = mesh->neuman_bound[i].element_indx;
         size_t idx_node_1 = mesh->neuman_bound[i].node_inds[0];
         size_t idx_node_2 = mesh->neuman_bound[i].node_inds[1];
         size_t idx_node_3 = 0;
-        double x1 = 0.0, y1 = 0.0, x2 = 0.0, y2 = 0.0, x3 = 0.0, y3 = 0.0;
 
-        size_t m = mesh->num_elements;
-        for (size_t j = 0; j < m; ++j) {
-            size_t idx_elem_1 = mesh->triangle_elements[j].node_inds[0];
-            size_t idx_elem_2 = mesh->triangle_elements[j].node_inds[1];
-            size_t idx_elem_3 = mesh->triangle_elements[j].node_inds[2];
-            if (idx_elem_1 == idx_node_1 && idx_elem_2 == idx_node_2) {
-                idx_node_3 = idx_elem_3;
-            } else if (idx_elem_2 == idx_node_1 && idx_elem_3 == idx_node_2) {
-                idx_node_3 = idx_elem_1;
-            } else if (idx_elem_3 == idx_node_1 && idx_elem_1 == idx_node_2) {
-                idx_node_3 = idx_elem_2;
-            }
-            x1 = mesh->nodes[idx_node_1].x, y1 = mesh->nodes[idx_node_1].y;
-            x2 = mesh->nodes[idx_node_2].x, y2 = mesh->nodes[idx_node_2].y;
-            x3 = mesh->nodes[idx_node_3].x, y3 = mesh->nodes[idx_node_3].y;
+        size_t idx_elem_1 = mesh->triangle_elements[idx_elem].node_inds[0];
+        size_t idx_elem_2 = mesh->triangle_elements[idx_elem].node_inds[1];
+        size_t idx_elem_3 = mesh->triangle_elements[idx_elem].node_inds[2];
+
+        if (idx_elem_1 == idx_node_1 && idx_elem_2 == idx_node_2) {
+            idx_node_3 = idx_elem_3;
+        } else if (idx_elem_2 == idx_node_1 && idx_elem_3 == idx_node_2) {
+            idx_node_3 = idx_elem_1;
+        } else if (idx_elem_3 == idx_node_1 && idx_elem_1 == idx_node_2) {
+            idx_node_3 = idx_elem_2;
         }
+
+        double x1 = 0.0, y1 = 0.0, x2 = 0.0, y2 = 0.0, x3 = 0.0, y3 = 0.0;
+        x1 = mesh->nodes[idx_node_1].x, y1 = mesh->nodes[idx_node_1].y;
+        x2 = mesh->nodes[idx_node_2].x, y2 = mesh->nodes[idx_node_2].y;
+        x3 = mesh->nodes[idx_node_3].x, y3 = mesh->nodes[idx_node_3].y;
+        
         double N1, N2, N3;
         compute_shape_function_contributions_in_neumann_conditions(x1, y1, x2, y2, x3, y3, flux, &N1, &N2, &N3);
+
         force_matrix[idx_node_1] += N1;
         force_matrix[idx_node_2] += N2;
         force_matrix[idx_node_3] += N3;
@@ -187,16 +184,17 @@ void compute_shape_function_contributions_in_neumann_conditions(double x1, doubl
     double A = triangle_area(x1, y1, x2, y2, x3, y3);
     double edge_length = sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
 
-    for (size_t i = 0; i < 7; ++i) {
+    for (size_t i = 0; i < 8; ++i) {
         double xi = Gauss8Point[i].point;
         double weight = Gauss8Point[i].weight;
+
         double x_ = (1 - xi) / 2.0 * x1 + (1 + xi) / 2.0 * x2;
         double y_ = (1 - xi) / 2.0 * y1 + (1 + xi) / 2.0 * y2;
         *N1 += (b1 + c1 * x_ + d1 * y_) * y_ * weight;
         *N2 += (b2 + c2 * x_ + d2 * y_) * y_ * weight;
         *N3 += (b3 + c3 * x_ + d3 * y_) * y_ * weight;
     }
-    double factor = M_PI * flux * A;
+    double factor = M_PI * flux / A;
     *N1 *= factor * edge_length / 2.0;
     *N2 *= factor * edge_length / 2.0;
     *N3 *= factor * edge_length / 2.0;
