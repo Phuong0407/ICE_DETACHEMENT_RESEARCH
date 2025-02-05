@@ -1,7 +1,7 @@
 #ifndef POST_PROCESSING_H
 #define POST_PROCESSING_H
 
-#include "dense_system_solver.h"
+#include "dense_system_solver.hpp"
 
 #include <array>
 #include <vector>

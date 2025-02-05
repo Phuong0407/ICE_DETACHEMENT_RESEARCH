@@ -1,7 +1,7 @@
-#include "geometry.h"
-#include "axisymmetric_fem.h"
-#include "csr_sparse_solver.h"
-#include "post_processing.h"
+#include "geometry.hpp"
+#include "axisymmetric_fem.hpp"
+#include "csr_sparse_solver.hpp"
+#include "post_processing.hpp"
 
 #include <iostream>
 #include <vector>

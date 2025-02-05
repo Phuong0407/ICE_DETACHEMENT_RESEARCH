@@ -2,7 +2,7 @@
 #define AXISYMMETRIC_FINITE_ELEMENT_METHOD_H
 
 // #include "geometry.h"
-#include "csr_sparse_solver.h"
+#include "csr_sparse_solver.hpp"
 #include <cmath>
 #include <vector>
 #include <array>
