@@ -29,4 +29,10 @@ typedef struct {
     double *dirichlet_bound;
 } mesh2D;
 
+typedef struct {
+    size_t ind;
+    double dev_x;
+    double dev_y;
+} gradient2D;
+
 #endif
