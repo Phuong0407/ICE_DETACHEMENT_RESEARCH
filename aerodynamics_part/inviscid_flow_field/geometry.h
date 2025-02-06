@@ -1,43 +1,12 @@
 #ifndef AXISYMMETRIC_FINITE_ELEMENT_GEOMETRY_H
 #define AXISYMMETRIC_FINITE_ELEMENT_GEOMETRY_H
 
+#include "data_structures_fem.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stddef.h>
 #include <math.h>
-
-void safe_free(void **ptr) {
-    if (*ptr) {
-        free(*ptr);
-        *ptr = NULL;
-    }
-}
-
-typedef struct {
-    double x, y;
-} node;
-
-typedef struct {
-    size_t node_inds[3];
-} triangle_element;
-
-typedef struct {
-    size_t node_inds[2];
-    size_t element_indx;
-    double flux;
-} edge;
-
-typedef struct {
-    size_t num_nodes;
-    size_t num_elements;
-    size_t num_elements_hor, num_elements_ver;
-    size_t num_neumann_edges, num_dirichlet_nodes;
-    node *nodes;
-    triangle_element *triangle_elements;
-    edge *neuman_bound;
-    size_t *dirichlet_inds;
-    double *dirichlet_bound;
-} mesh2D;
 
 
 

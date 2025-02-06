@@ -44,7 +44,7 @@ double** compute_local_stiffness_matrix(double x1, double y1, double x2, double 
 double* compute_global_stiffness_matrix(const mesh2D *mesh);
 void apply_neumann_boundary_conditions(const mesh2D *mesh, double *force_matrix);
 void apply_dirichlet_boundary_conditions(const mesh2D *mesh, double **global_stiffness_matrix, double *force_matrix);
-void compute_shape_function_contributions_in_neumann_conditions(double x1, double y1, double x2, double y2, double x3, double y3, double flux, double *N1, double *N2, double *N3);
+void compute_shape_function_contributions_in_neumann_conditions(double x1, double y1, double x2, double y2, double x3, double y3, double flux, double *N1, double *N2);
 
 
 
@@ -142,12 +142,11 @@ void apply_neumann_boundary_conditions(const mesh2D *mesh, double *force_matrix)
         x2 = mesh->nodes[idx_node_2].x, y2 = mesh->nodes[idx_node_2].y;
         x3 = mesh->nodes[idx_node_3].x, y3 = mesh->nodes[idx_node_3].y;
         
-        double N1, N2, N3;
-        compute_shape_function_contributions_in_neumann_conditions(x1, y1, x2, y2, x3, y3, flux, &N1, &N2, &N3);
+        double N1, N2;
+        compute_shape_function_contributions_in_neumann_conditions(x1, y1, x2, y2, x3, y3, flux, &N1, &N2);
 
         force_matrix[idx_node_1] += N1;
         force_matrix[idx_node_2] += N2;
-        force_matrix[idx_node_3] += N3;
     }
 }
 
@@ -174,8 +173,8 @@ void apply_dirichlet_boundary_conditions(const mesh2D *mesh, double **global_sti
 
 
 
-void compute_shape_function_contributions_in_neumann_conditions(double x1, double y1, double x2, double y2, double x3, double y3, double flux, double *N1, double *N2, double *N3) {
-    *N1 = 0.0, *N2 = 0.0, *N3 = 0.0;
+void compute_shape_function_contributions_in_neumann_conditions(double x1, double y1, double x2, double y2, double x3, double y3, double flux, double *N1, double *N2) {
+    *N1 = 0.0, *N2 = 0.0;
 
     double b1 = x2 * y3 - x3 * y2, b2 = x3 * y1 - x1 * y3, b3 = x1 * y2 - x2 * y1;
     double c1 = y2 - y3, c2 = y3 - y1, c3 = y1 - y2;
@@ -192,12 +191,10 @@ void compute_shape_function_contributions_in_neumann_conditions(double x1, doubl
         double y_ = (1 - xi) / 2.0 * y1 + (1 + xi) / 2.0 * y2;
         *N1 += (b1 + c1 * x_ + d1 * y_) * y_ * weight;
         *N2 += (b2 + c2 * x_ + d2 * y_) * y_ * weight;
-        *N3 += (b3 + c3 * x_ + d3 * y_) * y_ * weight;
     }
     double factor = M_PI * flux / A;
     *N1 *= factor * edge_length / 2.0;
     *N2 *= factor * edge_length / 2.0;
-    *N3 *= factor * edge_length / 2.0;
 }
 
 
