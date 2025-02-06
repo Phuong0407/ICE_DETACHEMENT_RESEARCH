@@ -1,5 +1,5 @@
 module csr_sparse_solver
-    use, intrinsic :: iso_c_binding, only: c_double, c_int, c_ptr, c_loc
+    use, intrinsic :: iso_c_binding
     implicit none
     private
     real(8), save :: zero_compared_tol, matrix_norm
@@ -37,10 +37,6 @@ contains
             end do
         end do
 
-        if (allocated(val)) deallocate(val)
-        if (allocated(col_idx)) deallocate(col_idx)
-        if (allocated(row_ptr)) deallocate(row_ptr)
-
         allocate(val(non_zero_element))
         allocate(col_idx(non_zero_element))
         allocate(row_ptr(size_matrix + 1))
@@ -75,9 +71,9 @@ contains
         end do
     end subroutine mult_sparse_matrix
 
-    subroutine solve_sparse_system_from_rhs(rhs_vect, n, solution)
+    subroutine solve_sparse_system_from_rhs(rhs_vect, solution, n)
         implicit none
-        integer, intent(in) :: n
+        integer(c_int), intent(in) :: n
         real(8), intent(in) :: rhs_vect(n)
         real(8), intent(out) :: solution(n)
 
@@ -115,36 +111,35 @@ contains
         end do
 
         if (iter == max_iter) then
-            print *, "Failed to converge in ", max_iter, " iterations in FORTRAN MODULE CSR_SPARSE_SOLVER!"
+            print *, "Failed to converge in ", max_iter, " iterations in csr_sparse_solver.f90."
         end if
         deallocate(r, p, Ap)
+        
     end subroutine solve_sparse_system_from_rhs
 
-    subroutine solve_sparse_system(sparse_matrix, rhs, solution_ptr, n) bind(C, name="solve_sparse_system")
-        use, intrinsic :: iso_c_binding, only: c_double, c_int, c_ptr, c_loc
+    subroutine deallocate_sparse_solver()
+        implicit none
+        if (allocated(val)) then
+            deallocate(val)
+        end if
+        if (allocated(col_idx)) then
+            deallocate(col_idx)
+        end if
+        if (allocated(row_ptr)) then
+            deallocate(row_ptr)
+        end if
+    end subroutine deallocate_sparse_solver
+
+    subroutine solve_sparse_system(sparse_matrix, rhs_vect, solution, n) bind(C, name="solve_sparse_system")
         implicit none
         integer(c_int), intent(in) :: n
-        real(c_double), intent(in), dimension(n * n) :: sparse_matrix
-        real(c_double), intent(in), dimension(n) :: rhs
-        type(c_ptr), intent(out) :: solution_ptr
-
-        real(c_double), allocatable, save :: solution(:)
-
-        if (allocated(solution)) then
-            if (size(solution) /= n) then
-                deallocate(solution)
-            end if
-        end if
-
-        if (.not. allocated(solution)) then
-            allocate(solution(n))
-        end if
+        real(8), intent(in), dimension(n * n) :: sparse_matrix
+        real(8), intent(in) :: rhs_vect(n)
+        real(8), intent(out) :: solution(n)
 
         call init_sparse_solver(sparse_matrix, n)
-        call solve_sparse_system_from_rhs(rhs, n, solution)
-
-        solution_ptr = c_loc(solution)
-
+        call solve_sparse_system_from_rhs(rhs_vect, solution, n)
+        call deallocate_sparse_solver()
     end subroutine solve_sparse_system
 
 end module csr_sparse_solver

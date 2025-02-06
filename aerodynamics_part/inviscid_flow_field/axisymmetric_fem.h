@@ -2,11 +2,13 @@
 #define AXISYMMETRIC_FINITE_ELEMENT_H
 
 #include "geometry.h"
+#include "C_FORTRAN_caller.h"
 
 #include <stdio.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <math.h>
+#include <iostream>
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -101,6 +103,8 @@ double* compute_global_stiffness_matrix(const mesh2D *mesh) {
                 global_stiffness_matrix[glo_row_idx * num_nodes + glo_col_idx] += local_stiffness_matrix[local_row_idx][local_col_idx];
             }
         }
+        for(size_t i = 0; i < 3; ++i) free(local_stiffness_matrix[i]);
+        free(local_stiffness_matrix);
     }
     return global_stiffness_matrix;
 }
@@ -108,27 +112,21 @@ double* compute_global_stiffness_matrix(const mesh2D *mesh) {
 
 
 void apply_neumann_boundary_conditions(const mesh2D *mesh, double *force_matrix) {
-    if (!force_matrix) {
-        fprintf(stderr, "FORCE MATRIX IS NULL. PLEASE INITIALIZE IT BEFORE APPLYING NEUMANN BOUNDARY CONDITIONS. EXITING.\n");
-        exit(EXIT_FAILURE);
-    }
-
-    
     size_t n = mesh->num_neumann_edges;
     if (n == 0) return;
 
     for (size_t i = 0; i < n; ++i) {
         double flux = mesh->neuman_bound[i].flux;
         if (fabs(flux) < 1e-12) continue;
-        size_t idx_elem = mesh->neuman_bound[i].element_indx;
         size_t idx_node_1 = mesh->neuman_bound[i].node_inds[0];
         size_t idx_node_2 = mesh->neuman_bound[i].node_inds[1];
-        size_t idx_node_3 = 0;
 
+        size_t idx_elem = mesh->neuman_bound[i].element_indx;
         size_t idx_elem_1 = mesh->triangle_elements[idx_elem].node_inds[0];
         size_t idx_elem_2 = mesh->triangle_elements[idx_elem].node_inds[1];
         size_t idx_elem_3 = mesh->triangle_elements[idx_elem].node_inds[2];
 
+        size_t idx_node_3 = 0;
         if (idx_elem_1 == idx_node_1 && idx_elem_2 == idx_node_2) {
             idx_node_3 = idx_elem_3;
         } else if (idx_elem_2 == idx_node_1 && idx_elem_3 == idx_node_2) {
@@ -176,9 +174,9 @@ void apply_dirichlet_boundary_conditions(const mesh2D *mesh, double **global_sti
 void compute_shape_function_contributions_in_neumann_conditions(double x1, double y1, double x2, double y2, double x3, double y3, double flux, double *N1, double *N2) {
     *N1 = 0.0, *N2 = 0.0;
 
-    double b1 = x2 * y3 - x3 * y2, b2 = x3 * y1 - x1 * y3, b3 = x1 * y2 - x2 * y1;
-    double c1 = y2 - y3, c2 = y3 - y1, c3 = y1 - y2;
-    double d1 = x3 - x2, d2 = x1 - x3, d3 = x2 - x1;
+    double b1 = x2 * y3 - x3 * y2, b2 = x3 * y1 - x1 * y3;
+    double c1 = y2 - y3, c2 = y3 - y1;
+    double d1 = x3 - x2, d2 = x1 - x3;
 
     double A = triangle_area(x1, y1, x2, y2, x3, y3);
     double edge_length = sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
@@ -199,4 +197,15 @@ void compute_shape_function_contributions_in_neumann_conditions(double x1, doubl
 
 
 
+double* laplace_solver(mesh2D *mesh) {
+    int n = mesh->num_nodes;
+    double *global_stiffness_matrix = compute_global_stiffness_matrix(mesh);
+    double *force_matrix = (double*)calloc(n, sizeof(double));
+    apply_neumann_boundary_conditions(mesh, force_matrix);
+    double *solution = (double*)calloc(n, sizeof(double));
+    solve_sparse_system(global_stiffness_matrix, force_matrix, solution, &n);
+    free(global_stiffness_matrix);
+    free(force_matrix);
+    return solution;
+}
 #endif

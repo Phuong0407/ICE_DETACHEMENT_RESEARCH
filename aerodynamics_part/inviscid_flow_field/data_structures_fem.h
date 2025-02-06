@@ -2,6 +2,7 @@
 #define DATA_STRUCTURES_FEM_H
 
 #include <stddef.h>
+#include <stdlib.h>
 
 typedef struct {
     double x, y;
@@ -34,5 +35,50 @@ typedef struct {
     double dev_x;
     double dev_y;
 } gradient2D;
+
+void free_nodes(node *nodes) {
+    if (nodes) {
+        free(nodes);
+        nodes = NULL;
+    }
+}
+
+void free_triangle_elements(triangle_element *elements) {
+    if (elements) {
+        free(elements);
+        elements = NULL;
+    }
+}
+
+void free_edges(edge *edges) {
+    if (edges) {
+        free(edges);
+        edges = NULL;
+    }
+}
+
+void free_mesh2D(mesh2D *mesh) {
+    if (!mesh) return;
+
+    if (mesh->nodes) free(mesh->nodes);
+    if (mesh->triangle_elements) free(mesh->triangle_elements);
+    if (mesh->neuman_bound) free(mesh->neuman_bound);
+    if (mesh->dirichlet_inds) free(mesh->dirichlet_inds);
+    if (mesh->dirichlet_bound) free(mesh->dirichlet_bound);
+
+    mesh->nodes = NULL;
+    mesh->triangle_elements = NULL;
+    mesh->neuman_bound = NULL;
+    mesh->dirichlet_inds = NULL;
+    mesh->dirichlet_bound = NULL;
+
+    free(mesh);
+}
+
+void free_gradient2D(gradient2D *gradients) {
+    if (gradients) {
+        free(gradients);
+    }
+}
 
 #endif

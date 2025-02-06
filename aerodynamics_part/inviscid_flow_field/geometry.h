@@ -32,16 +32,38 @@ mesh2D *init_mesh2D(size_t num_elements_hor, size_t num_elements_ver) {
     mesh->num_elements_ver = num_elements_ver;
     mesh->num_nodes = (num_elements_hor + 1) * (num_elements_ver + 1);
     mesh->num_elements = 2 * num_elements_hor * num_elements_ver;
+
+    mesh->nodes = NULL;
+    mesh->triangle_elements = NULL;
+    mesh->neuman_bound = NULL;
+    mesh->dirichlet_inds = NULL;
+    mesh->dirichlet_bound = NULL;
+    mesh->num_neumann_edges = 0;
+    mesh->num_dirichlet_nodes = 0;
+
     mesh->nodes = (node*)malloc(mesh->num_nodes * sizeof(node));
+    if (!mesh->nodes) {
+        fprintf(stderr, "Error: Memory allocation failed for nodes.\n");
+        free(mesh);
+        exit(EXIT_FAILURE);
+    }
+
     mesh->triangle_elements = (triangle_element*)malloc(mesh->num_elements * sizeof(triangle_element));
+    if (!mesh->triangle_elements) {
+        fprintf(stderr, "Error: Memory allocation failed for triangle_elements.\n");
+        free(mesh->nodes);
+        free(mesh);
+        exit(EXIT_FAILURE);
+    }
+
     return mesh;
 }
 
 
 
+
 mesh2D* generate_algebraic_grid(double L1, double L2, double H1, double H2, double H3, size_t N, size_t M1, size_t M2, size_t M3) {
     size_t M = M1 + M2 + M3;
-    size_t num_nodes = (M + 1) * (N + 1);
     mesh2D *mesh = init_mesh2D(M, N);
 
     double dy1 = L1/N, dy2 = L2/N;
@@ -184,8 +206,8 @@ void generate_boundary_node(double L1, double L2, double H1, double H2, double H
     *right = (node*)calloc(N + 1, sizeof(node));
 
     for (size_t i = 0; i <= M1; ++i) {
-        double x = H1 / M1 * i;
-        (*bottom)[i].x = x;
+        double x = dx1 * i;
+        (*bottom)[i].x = dx1 * x;
         (*bottom)[i].y = 0.0;
         (*top)[i].x = x;
         (*top)[i].y = L1;
@@ -209,8 +231,8 @@ void generate_boundary_node(double L1, double L2, double H1, double H2, double H
     for (size_t i = 0; i <= N; ++i) {
         (*left)[i].x = 0.0;
         (*right)[i].x = H1 + H2 + H3;
-        (*left)[i].y = L1 / N * i;
-        (*right)[i].y = L1 - L2 + L2 / N * i;
+        (*left)[i].y = dy1 * i;
+        (*right)[i].y = L1 - L2 + dy2 * i;
     }
 }
 
@@ -218,12 +240,11 @@ void generate_boundary_node(double L1, double L2, double H1, double H2, double H
 
 mesh2D* generate_stretching_grid(double alpha, double eta1, node *bottom, node *top, size_t M, size_t N) {
     mesh2D *mesh = init_mesh2D(M, N);
-    double dxi = 1.0 / M, deta = 1.0 / N;
+    double deta = 1.0 / N;
     for (size_t i = 0; i <= N; ++i) {
         double eta = i * deta;
         for (size_t j = 0; j <= M; ++j) {
             size_t ij = i * (M + 1) + j;
-            double xi = j * dxi;
             mesh->nodes[ij].x = bottom[j].x;
             if (eta <= eta1) {
                 mesh->nodes[ij].y = (top[j].y - bottom[j].y) * eta1 * (exp(alpha * eta / eta1) - 1.0) / (exp(alpha) - 1) + bottom[j].y;
@@ -279,6 +300,7 @@ void generate_neumann_boundary_conditions(double flux1, double flux2, double flu
         element_idx += 2;
         idx_neumann++;
     }
+    element_idx = 2 * (M - 1);
     for (size_t i = 0; i < N; ++i) {
         size_t idx_node1 = i * (M + 1) + M, idx_node2 = idx_node1 + M + 1;
         mesh->neuman_bound[idx_neumann].element_indx = element_idx;
@@ -288,7 +310,7 @@ void generate_neumann_boundary_conditions(double flux1, double flux2, double flu
         element_idx += 2 * M;
         idx_neumann++;
     }
-    element_idx++;
+    element_idx = 2 * M * N - 1;
     for (int i = M; i > 0; --i) {
         size_t idx_node1 = N * (M + 1) + i, idx_node2 = idx_node1 - 1;
         mesh->neuman_bound[idx_neumann].element_indx = element_idx;
@@ -298,9 +320,9 @@ void generate_neumann_boundary_conditions(double flux1, double flux2, double flu
         element_idx -= 2;
         idx_neumann++;
     }
+    element_idx = 2 * M * (N - 1) + 1;
     for (int i = N; i > 0; --i) {
         size_t idx_node1 = i * (M + 1), idx_node2 = idx_node1 - M - 1;
-        size_t element_idx = 2 * i;
         mesh->neuman_bound[idx_neumann].element_indx = element_idx;
         mesh->neuman_bound[idx_neumann].node_inds[0] = idx_node1;
         mesh->neuman_bound[idx_neumann].node_inds[1] = idx_node2;

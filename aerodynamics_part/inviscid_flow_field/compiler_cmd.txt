@@ -1,1 +1,1 @@
-gfortran -c csr_sparse_solver.f90 -o csr_sparse_solver.o && gcc -c main.c -o main.o -I. && gfortran csr_sparse_solver.o main.o -o main -lgfortran
+gfortran -c csr_sparse_solver.f90 -o csr_sparse_solver.o && g++ -c main.cpp -o main.o -I. && gfortran csr_sparse_solver.o main.o -o main -lgfortran -lstdc++
