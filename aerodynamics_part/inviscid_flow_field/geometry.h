@@ -48,10 +48,19 @@ mesh2D *init_mesh2D(size_t num_elements_hor, size_t num_elements_ver) {
         exit(EXIT_FAILURE);
     }
 
+    mesh->element_areas = (double*)malloc(mesh->num_elements * sizeof(double));
+    if (!mesh->element_areas) {
+        fprintf(stderr, "Error: Memory allocation failed for element_areas.\n");
+        free(mesh->nodes);
+        free(mesh);
+        exit(EXIT_FAILURE);
+    }
+
     mesh->triangle_elements = (triangle_element*)malloc(mesh->num_elements * sizeof(triangle_element));
     if (!mesh->triangle_elements) {
         fprintf(stderr, "Error: Memory allocation failed for triangle_elements.\n");
         free(mesh->nodes);
+        free(mesh->element_areas);
         free(mesh);
         exit(EXIT_FAILURE);
     }

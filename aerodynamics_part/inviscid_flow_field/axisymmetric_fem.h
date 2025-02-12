@@ -1,7 +1,7 @@
 #ifndef AXISYMMETRIC_FINITE_ELEMENT_H
 #define AXISYMMETRIC_FINITE_ELEMENT_H
 
-#include "geometry.h"
+#include "data_structures_fem.h"
 #include "C_FORTRAN_caller.h"
 
 #include <stdio.h>
@@ -42,17 +42,17 @@ static inline double triangle_area(double x1, double y1, double x2, double y2, d
 
 
 
-double** compute_local_stiffness_matrix(double x1, double y1, double x2, double y2, double x3, double y3);
-double* compute_global_stiffness_matrix(const mesh2D *mesh);
+double** compute_local_stiffness_matrix(double x1, double y1, double x2, double y2, double x3, double y3, double *element_area);
+double* compute_global_stiffness_matrix(mesh2D *mesh);
 void apply_neumann_boundary_conditions(const mesh2D *mesh, double *force_matrix);
 void apply_dirichlet_boundary_conditions(const mesh2D *mesh, double **global_stiffness_matrix, double *force_matrix);
-void compute_shape_function_contributions_in_neumann_conditions(double x1, double y1, double x2, double y2, double x3, double y3, double flux, double *N1, double *N2);
+void compute_shape_function_contributions_in_neumann_conditions(double x1, double y1, double x2, double y2, double x3, double y3, double flux, double *N1, double *N2, double element_area);
 
 
 
 
 
-double** compute_local_stiffness_matrix(double x1, double y1, double x2, double y2, double x3, double y3) {
+double** compute_local_stiffness_matrix(double x1, double y1, double x2, double y2, double x3, double y3, double *element_area) {
     double c[3], d[3];
 
     double **local_stiffness_matrix;
@@ -64,8 +64,8 @@ double** compute_local_stiffness_matrix(double x1, double y1, double x2, double 
     d[0] = x3 - x2, d[1] = x1 - x3, d[2] = x2 - x1;
 
     double r_centroid = (y1 + y2 + y3) / 3.0;
-    double A = triangle_area(x1, y1, x2, y2, x3, y3);
-    double coefficient = M_PI * r_centroid / (2 * A);
+    (*element_area) = triangle_area(x1, y1, x2, y2, x3, y3);
+    double coefficient = M_PI * r_centroid / (2 * (*element_area));
 
     for (size_t i = 0; i < 3; ++i) {
         for (size_t j = 0; j < 3; ++j) {
@@ -77,7 +77,7 @@ double** compute_local_stiffness_matrix(double x1, double y1, double x2, double 
 
 
 
-double* compute_global_stiffness_matrix(const mesh2D *mesh) {
+double* compute_global_stiffness_matrix(mesh2D *mesh) {
     size_t num_nodes = mesh->num_nodes;
 
     double *global_stiffness_matrix;
@@ -93,7 +93,7 @@ double* compute_global_stiffness_matrix(const mesh2D *mesh) {
         double x2 = mesh->nodes[idx2].x, y2 = mesh->nodes[idx2].y;
         double x3 = mesh->nodes[idx3].x, y3 = mesh->nodes[idx3].y;
 
-        double **local_stiffness_matrix = compute_local_stiffness_matrix(x1, y1, x2, y2, x3, y3);
+        double **local_stiffness_matrix = compute_local_stiffness_matrix(x1, y1, x2, y2, x3, y3, &mesh->element_areas[idx_elem]);
         
         for(size_t local_row_idx = 0; local_row_idx < 3; ++local_row_idx) {
             size_t glo_row_idx = mesh->triangle_elements[idx_elem].node_inds[local_row_idx];
@@ -141,7 +141,7 @@ void apply_neumann_boundary_conditions(const mesh2D *mesh, double *force_matrix)
         x3 = mesh->nodes[idx_node_3].x, y3 = mesh->nodes[idx_node_3].y;
         
         double N1, N2;
-        compute_shape_function_contributions_in_neumann_conditions(x1, y1, x2, y2, x3, y3, flux, &N1, &N2);
+        compute_shape_function_contributions_in_neumann_conditions(x1, y1, x2, y2, x3, y3, flux, &N1, &N2, mesh->element_areas[idx_elem]);
 
         force_matrix[idx_node_1] += N1;
         force_matrix[idx_node_2] += N2;
@@ -171,14 +171,13 @@ void apply_dirichlet_boundary_conditions(const mesh2D *mesh, double **global_sti
 
 
 
-void compute_shape_function_contributions_in_neumann_conditions(double x1, double y1, double x2, double y2, double x3, double y3, double flux, double *N1, double *N2) {
+void compute_shape_function_contributions_in_neumann_conditions(double x1, double y1, double x2, double y2, double x3, double y3, double flux, double *N1, double *N2, double element_area) {
     *N1 = 0.0, *N2 = 0.0;
 
     double b1 = x2 * y3 - x3 * y2, b2 = x3 * y1 - x1 * y3;
     double c1 = y2 - y3, c2 = y3 - y1;
     double d1 = x3 - x2, d2 = x1 - x3;
 
-    double A = triangle_area(x1, y1, x2, y2, x3, y3);
     double edge_length = sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
 
     for (size_t i = 0; i < 8; ++i) {
@@ -190,7 +189,7 @@ void compute_shape_function_contributions_in_neumann_conditions(double x1, doubl
         *N1 += (b1 + c1 * x_ + d1 * y_) * y_ * weight;
         *N2 += (b2 + c2 * x_ + d2 * y_) * y_ * weight;
     }
-    double factor = M_PI * flux / A;
+    double factor = M_PI * flux / element_area;
     *N1 *= factor * edge_length / 2.0;
     *N2 *= factor * edge_length / 2.0;
 }
