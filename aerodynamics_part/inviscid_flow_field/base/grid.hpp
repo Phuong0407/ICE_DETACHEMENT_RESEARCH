@@ -15,6 +15,9 @@ private:
     std::vector<edge> edges;
     std::vector<cell> cells;
 
+private:
+    std::vector<std::array<double, 2>> points;
+
 public:
     grid() = default;
 
