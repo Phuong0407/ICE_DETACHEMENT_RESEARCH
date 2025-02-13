@@ -1,5 +1,5 @@
-#ifndef CELL_HPP
-#define CELL_HPP
+#ifndef cell_hpp
+#define cell_hpp
 
 #include <array>
 #include <vector>
@@ -9,7 +9,6 @@
 class cell {
 private:
     std::array<unsigned int, 3> vertex_ids;
-    std::vector<unsigned int> edge_ids;
 
     /**
      * Adaptive mesh refinement attributes
@@ -23,8 +22,8 @@ public:
     cell(unsigned int v1, unsigned int v2, unsigned int v3) : vertex_ids{v1, v2, v3} {}
 
     const std::array<unsigned int, 3>& get_nodes() const { return vertex_ids; }
-    void add_edge(unsigned int edge_id) { edge_ids.push_back(edge_id);}
-    const std::vector<unsigned int>& get_edges() const { return edge_ids; }
+    // void add_edge(unsigned int edge_id) { edge_ids.push_back(edge_id);}
+    // const std::vector<unsigned int>& get_edges() const { return edge_ids; }
 
     /**
      * Adaptive mesh refinement functions

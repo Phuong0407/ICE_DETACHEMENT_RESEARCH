@@ -1,11 +1,9 @@
-#ifndef GRID_HPP
-#define GRID_HPP
+#ifndef grid_hpp
+#define grid_hpp
 
 #include "vertex.hpp"
 #include "edge.hpp"
 #include "cell.hpp"
-
-// #include "./aerodynamics_part/inviscid_flow_field/base/cell.hpp"
 
 #include <vector>
 
@@ -20,16 +18,6 @@ private:
 
 public:
     grid() = default;
-
-    void add_vertex(unsigned int id, bool is_dirichlet = false, bool is_neumann = false) {
-        vertices.emplace_back(id, is_dirichlet, is_neumann);
-    }
-    void add_edge(unsigned int id, unsigned int vertex1, unsigned int vertex2, bool is_neumann = false) {
-        edges.emplace_back(id, vertex1, vertex2, is_neumann);
-    }
-    void add_cell(unsigned int v1, unsigned int v2, unsigned int v3) {
-        cells.emplace_back(v1, v2, v3);
-    }
 
     unsigned int get_num_vertices() const { return vertices.size(); }
     unsigned int get_num_edges() const { return edges.size(); }
