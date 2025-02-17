@@ -126,21 +126,6 @@ namespace mesh_generation
             }
         }        
 
-        [[nodiscard]] vector<3, double_t> norm() const
-        {
-            if constexpr (_spdim != 3)
-                throw std::logic_error("normal vector is only defined for 3D polygons.");
-
-            if (!v_norm.has_value())
-            {
-                vector<3, double_t> v1 = vertices[1] - vertices[0];
-                vector<3, double_t> v2 = vertices[2] - vertices[0];
-                v_norm = v1.cross(v2).normalize();
-            }
-            return v_norm.value();
-        }
-
-
         [[nodiscard]] bool __oriented_clockwise__(std::optional<vector<3, double_t>> reference_normal = std::nullopt) const
         {
             if constexpr (_spdim == 2) 
@@ -152,7 +137,7 @@ namespace mesh_generation
                 {
                     const point<2, double_t>& p1 = vertices[i];
                     const point<2, double_t>& p2 = vertices[(i + 1) % n];
-                    sum += (p2.x() - p1.x()) * (p2.y() + p1.y());
+                    sum += (p1(0) * p2(1) - p2(0) * p1(1));
                 }
         
                 return sum > 0;
