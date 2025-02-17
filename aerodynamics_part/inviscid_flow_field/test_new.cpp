@@ -1,4 +1,5 @@
 #include "./grid_generation/grid_generation.hpp"
+#include "./base/grid.hpp"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,6 +9,7 @@
 #include <vector>
 #include <array>
 #include <cstdlib>
+#include <chrono>
 
 void visualize_mesh_via_gnu_plot(const std::vector<double>& x, 
                                  const std::vector<double>& y, 
@@ -67,6 +69,7 @@ void visualize_mesh_via_gnu_plot(const std::vector<double>& x,
 }
 
 int main() {
+    auto start = std::chrono::high_resolution_clock::now();
     std::vector<double> x, y;
     std::vector<double> x2, y2;
     std::vector<std::array<unsigned int, 3>> connection;
@@ -77,10 +80,10 @@ int main() {
     double H3 = 3.0;
     double a = (L1 - L2) / H2;
 
-    unsigned int M1 = 20;
-    unsigned int M2 = 20;
-    unsigned int M3 = 10;
-    unsigned int N = 20;
+    unsigned int M1 = 2;
+    unsigned int M2 = 2;
+    unsigned int M3 = 2;
+    unsigned int N = 2;
 
     auto xAB = [](double h, double H1, double H2) -> double { return H1 + H2 * h; };
     auto yAB = [](double h, double a, double H2) -> double { return a * H2 * h; };
@@ -102,5 +105,20 @@ int main() {
     grid_generation::generate_grid_by_hermite_interpolation(N, M2, 3.0, 3.0, 0.0, 0.0, xAB_wrapped, yAB_wrapped, xCD_wrapped, yCD_wrapped, dxAB_wrapped, dyAB_wrapped, dxCD_wrapped, dyCD, x2, y2);
     grid_generation::generate_full_grid(H1, H2, H3, N, M1, M2, M3, 1.8, 0.1, 2.0, x2, y2, x, y);
     grid_generation::generate_grid_connection(N, M1 + M2 + M3, connection);
-    visualize_mesh_via_gnu_plot(x, y, connection);
+    // visualize_mesh_via_gnu_plot(x, y, connection);
+
+    grid structured_grid;
+    structured_grid.init_grid_coordinate(x, y);
+    structured_grid.init_cells(connection);
+    structured_grid.init_vertices();
+    structured_grid.init_edges();
+    structured_grid.init_cells_to_edges();
+
+    // const auto &a_ = structured_grid.get_cells();
+    // for (const auto &b : a_) {
+    //     std::cout << b.get_edge_id(0) << ", " << b.get_edge_id(1) << ", " << b.get_edge_id(2) << std::endl;
+    // }
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double, std::milli> duration = end - start;
+    std::cout << "Execution time: " << duration.count() / 1000 << " s" << std::endl;
 }

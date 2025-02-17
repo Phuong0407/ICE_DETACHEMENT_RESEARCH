@@ -342,9 +342,9 @@ void grid_generation::generate_grid_connection(
         }
     }
 
-    for (unsigned int i = 0; i < N * M * 2; ++i) {
-            std::cout << "[" << connection[i][0] << ", " << connection[i][1] << ", " << connection[i][2] << "]" << std::endl;
-    }
+    // for (unsigned int i = 0; i < N * M * 2; ++i) {
+    //         std::cout << "[" << connection[i][0] << ", " << connection[i][1] << ", " << connection[i][2] << "]" << std::endl;
+    // }
 }
 
 

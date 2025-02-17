@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <array>
+#include <set>
 
 class vertex{
 private:
@@ -14,9 +15,11 @@ private:
 
 public:
     vertex() = default;
-    vertex(unsigned int id, bool dirichlet = false, bool neumann = false) : id(id), is_dirichlet(is_dirichlet), is_neumann(is_neumann) {}
-    void add_cell(unsigned int cell_id) { cell_ids.push_back(cell_id); }
-    void add_neighbor(unsigned int neighbor_id) { neighbor_ids.push_back(neighbor_id); }
+    void init_vertex_id(unsigned int id) { this->id = id; }
+    void init_cell_ids(std::vector<unsigned int> cell_ids) { this->cell_ids = std::move(cell_ids); }
+    void init_cell_ids(unsigned int cell_id) { cell_ids.push_back(cell_id); }
+    void init_neighbor_ids(std::vector<unsigned int> neighbor_ids) { this->neighbor_ids = std::move(neighbor_ids); }
+    void init_neighbor_ids(const std::set<unsigned int>& neighbors) { neighbor_ids.assign(neighbors.begin(), neighbors.end()); }
 
 public:
     unsigned int get_id() const { return id; }
@@ -24,6 +27,7 @@ public:
     bool is_dirichlet_bound() const { return is_dirichlet; }
     bool is_neumann_bound() const { return is_neumann; }
     std::vector<unsigned int> get_cell_ids() const { return cell_ids; }
+    std::vector<unsigned int> get_neighbor_ids() const { return neighbor_ids; }
 };
 
 #endif
