@@ -1,0 +1,100 @@
+.
+├── aerodynamics_part
+│   ├── boundary_layer
+│   └── inviscid_flow_field
+│       ├── axisymmetric_fem.h
+│       ├── base
+│       │   ├── cell.hpp
+│       │   ├── edge.hpp
+│       │   ├── grid.hpp
+│       │   ├── topology.hpp
+│       │   └── vertex.hpp
+│       ├── C_FORTRAN_caller.h
+│       ├── compiler_cmd.txt
+│       ├── csr_sparse_solver.f90
+│       ├── csr_sparse_solver.mod
+│       ├── csr_sparse_solver.o
+│       ├── data_structures_fem.h
+│       ├── dense_solver.h
+│       ├── geometry.h
+│       ├── gradient_mesh_refinement.h
+│       ├── gradient_recovery.hpp
+│       ├── gradient_recovery_result.txt
+│       ├── grid_connections.dat
+│       ├── grid_generation
+│       │   ├── grid_generation.hpp
+│       │   └── result.png
+│       ├── grid_points.dat
+│       ├── main.cpp
+│       ├── main.o
+│       ├── output.txt
+│       ├── plot_grid.gnu
+│       ├── solution.txt
+│       ├── solver
+│       │   └── laplace_solver.hpp
+│       ├── test
+│       ├── test.cpp
+│       ├── test_new
+│       └── test_new.cpp
+├── a.txt
+├── FEM
+│   ├── documentation
+│   │   └── Doxyfile
+│   ├── include
+│   │   ├── config.h
+│   │   ├── connectivity
+│   │   │   ├── connectivity.hpp
+│   │   │   └── vertex_vertex.hpp
+│   │   ├── data_structure
+│   │   │   ├── matrix
+│   │   │   │   └── matrix.hpp
+│   │   │   ├── tensor
+│   │   │   │   ├── tensor_base.hpp
+│   │   │   │   ├── tensor_cu.cu
+│   │   │   │   ├── tensor_cu.hpp
+│   │   │   │   ├── tensor_eigen.hpp
+│   │   │   │   ├── tensor.hpp
+│   │   │   │   ├── tensor_mpi.hpp
+│   │   │   │   ├── tensor_omp.hpp
+│   │   │   │   └── test.cpp
+│   │   │   ├── test
+│   │   │   └── test.cpp
+│   │   ├── entity
+│   │   │   ├── cell_helper.hpp
+│   │   │   ├── cell.hpp
+│   │   │   ├── cellorder.hpp
+│   │   │   ├── celltype.hpp
+│   │   │   ├── edge.hpp
+│   │   │   ├── face_helper.hpp
+│   │   │   ├── face.hpp
+│   │   │   ├── faceorder.hpp
+│   │   │   ├── facetype.hpp
+│   │   │   ├── mesh_entity.hpp
+│   │   │   └── vertex.hpp
+│   │   ├── grid
+│   │   │   └── geometry.hpp
+│   │   └── mesh_generation
+│   │       ├── advancing_front.hpp
+│   │       ├── background_mesh.hpp
+│   │       ├── boundary.dat
+│   │       ├── edge.hpp
+│   │       ├── front_advancing.hpp
+│   │       ├── geometry.hpp
+│   │       ├── line.hpp
+│   │       ├── main
+│   │       ├── main.cpp
+│   │       ├── matrix.hpp
+│   │       ├── plot_grid.gnu
+│   │       ├── point.hpp
+│   │       ├── polygon.hpp
+│   │       ├── triangle.hpp
+│   │       └── vector.hpp
+│   ├── main
+│   ├── main.cpp
+│   └── src
+├── LICENSE
+├── README.md
+├── report
+└── TWO_SURFACE_HERMITE_INTERPOLATION.txt
+
+19 directories, 79 files
