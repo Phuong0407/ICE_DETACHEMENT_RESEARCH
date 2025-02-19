@@ -30,14 +30,36 @@ namespace data_structure
         public:
             using tsomp_ptr = std::unique_ptr<tensor_omp>;
             
-            void set_data(index_t idx, real_t val) override {
-                if (idx >= data_.size())
-                    throw std::invalid_argument("index to set data is out of bound.");
-                this->data_[idx] = val;
+            tensor_omp(const tensor_omp& other) {
+                data_ = other.data_;
             }
+    
+            tensor_omp& operator=(const tensor_omp& other) {
+                if (this != &other) {
+                    data_ = other.data_;
+                }
+                return *this;
+            }
+    
+            tensor_omp(tensor_omp&& other) noexcept {
+                data_ = std::move(other.data_);
+            }
+    
+            tensor_omp& operator=(tensor_omp&& other) noexcept {
+                if (this != &other) {
+                    data_ = std::move(other.data_);
+                }
+                return *this;
+            }
+    
+            void set_data(const std::vector<real_t>& new_data) override {
+                if (new_data.size() != data_.size())
+                    throw std::invalid_argument("size mismatch!");
+                data_ = new_data;
+            }
+
             const std::vector<real_t>& get_data() const override { return data_; }
             unsigned int data_size() const override { return data_.size(); }
-
 
             tensor_omp() {
                 index_t total_size = 1;
