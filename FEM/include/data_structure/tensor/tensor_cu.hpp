@@ -1,7 +1,7 @@
 #ifndef DATA_STRUCTURE_TENSOR_CU_HPP
 #define DATA_STRUCTURE_TENSOR_CU_HPP
 
-#include "tensor_base.hpp"
+#include <data_structure/tensor/tensor_base.hpp>
 
 #include <iostream>
 #include <vector>

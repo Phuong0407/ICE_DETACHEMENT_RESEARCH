@@ -1,7 +1,7 @@
 #ifndef DATA_STRUCTURE_TENSOR_OMP_HPP
 #define DATA_STRUCTURE_TENSOR_OMP_HPP
 
-#include "tensor_base.hpp"
+#include <data_structure/tensor/tensor_base.hpp>
 
 #ifdef USING_OPENMP
 #include <omp.h>
