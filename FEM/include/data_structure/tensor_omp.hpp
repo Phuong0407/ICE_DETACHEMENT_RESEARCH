@@ -12,10 +12,10 @@
 namespace data_structure
 {
 
-    template<unsigned int Rank, unsigned int Dim, typename double_t = double, typename index_t = unsigned int>
-    class tensor_omp : public tensor_base<Rank, Dim, double_t> {
+    template<unsigned int Rank, unsigned int Dim, typename real_t = double, typename index_t = unsigned int>
+    class tensor_omp : public tensor_base<Rank, Dim, real_t> {
         private:
-            std::vector<double_t> data_;
+            std::vector<real_t> data_;
             std::array<index_t, Rank> shape_;
 
             index_t _idx_(const std::array<index_t, Rank>& ids) const {
@@ -32,7 +32,8 @@ namespace data_structure
         public:
             using tsomp_ptr = std::unique_ptr<tensor_omp>;
             
-            const std::vector<double_t>& get_data() const override { return data_; }
+            const std::vector<real_t>& get_data() const override { return data_; }
+            unsigned int& data_size() const override { return data_.size(); }
 
             tensor_omp() {
                 index_t total_size = 1;
@@ -46,11 +47,11 @@ namespace data_structure
                 #pragma omp parallel for
                 #endif
                 for (size_t i = 0; i < data_.size(); ++i) {
-                    data_[i] = static_cast<double_t>(0.0);
+                    data_[i] = static_cast<real_t>(0.0);
                 }
             }
 
-            void init(const double_t* raw_data, size_t size) override {
+            void init(const real_t* raw_data, size_t size) override {
                 if (size != data_.size())
                     throw std::invalid_argument("size mismatch in raw pointer initialization.");
                 #ifdef USING_OPENMP
@@ -61,7 +62,7 @@ namespace data_structure
                 }
             }
 
-            void init(const std::vector<double_t>& vec) override {
+            void init(const std::vector<real_t>& vec) override {
                 if (vec.size() != data_.size())
                     throw std::invalid_argument("size mismatch in vector initialization.");
                 #ifdef USING_OPENMP
@@ -72,7 +73,7 @@ namespace data_structure
                 }
             }
 
-            void init(std::initializer_list<double_t> list) override {
+            void init(std::initializer_list<real_t> list) override {
                 if (list.size() != data_.size())
                     throw std::invalid_argument("size mismatch in initializer_list initialization.");
                 #ifdef USING_OPENMP
@@ -84,39 +85,39 @@ namespace data_structure
                 }
             }
 
-            typename tensor_base<Rank, Dim, double_t>::ts_ptr operator+(const tensor_base<Rank, Dim, double_t>& other) const override {
-                auto result = std::make_unique<tensor_omp<Rank, Dim, double_t>>();
+            typename tensor_base<Rank, Dim, real_t>::ts_ptr operator+(const tensor_base<Rank, Dim, real_t>& other) const override {
+                auto result = std::make_unique<tensor_omp<Rank, Dim, real_t>>();
                 #ifdef USING_OPENMP
                 #pragma omp parallel for
                 #endif
                 
-                std::vector<double_t> other_data_ = other.get_data();
+                std::vector<real_t> other_data_ = other.get_data();
                 for (size_t i = 0; i < data_.size(); ++i) {
                     result->data_[i] += other_data_[i];
                 }
                 return result;
             }
 
-            typename tensor_base<Rank, Dim, double_t>::ts_ptr operator-(const tensor_base<Rank, Dim, double_t>& other) const override {
-                auto result = std::make_unique<tensor_omp<Rank, Dim, double_t>>();
+            typename tensor_base<Rank, Dim, real_t>::ts_ptr operator-(const tensor_base<Rank, Dim, real_t>& other) const override {
+                auto result = std::make_unique<tensor_omp<Rank, Dim, real_t>>();
                 #ifdef USING_OPENMP
                 #pragma omp parallel for
                 #endif
                 
-                std::vector<double_t> other_data_ = other.get_data();
+                std::vector<real_t> other_data_ = other.get_data();
                 for (size_t i = 0; i < data_.size(); ++i) {
                     result->data_[i] -= other_data_[i];
                 }
                 return result;
             }
 
-            typename tensor_base<Rank, Dim, double_t>::ts_ptr operator*(const tensor_base<Rank, Dim, double_t>& other) const override {
-                auto result = std::make_unique<tensor_omp<Rank, Dim, double_t>>();
+            typename tensor_base<Rank, Dim, real_t>::ts_ptr operator*(const tensor_base<Rank, Dim, real_t>& other) const override {
+                auto result = std::make_unique<tensor_omp<Rank, Dim, real_t>>();
                 #ifdef USING_OPENMP
                 #pragma omp parallel for
                 #endif
                 
-                std::vector<double_t> other_data_ = other.get_data();
+                std::vector<real_t> other_data_ = other.get_data();
                 for (size_t i = 0; i < data_.size(); ++i) {
                     result->data_[i] *= other_data_[i];
                 }
@@ -124,13 +125,13 @@ namespace data_structure
             }
 
             template<unsigned int Rank2, unsigned int Dim2>
-            std::unique_ptr<tensor_omp<Rank + Rank2, Dim, double_t>> outer(const tensor_base<Rank2, Dim2, double_t>& other) const override {
+            std::unique_ptr<tensor_omp<Rank + Rank2, Dim, real_t>> outer(const tensor_base<Rank2, Dim2, real_t>& other) const override {
 
-                const auto* other_cast = dynamic_cast<const tensor_omp<Rank2, Dim2, double_t>*>(&other);
+                const auto* other_cast = dynamic_cast<const tensor_omp<Rank2, Dim2, real_t>*>(&other);
                 if (!other_cast)
                     throw std::invalid_argument("invalid tensor type in outer product");
 
-                auto result = std::make_unique<tensor_omp<Rank + Rank2, Dim, double_t>>();
+                auto result = std::make_unique<tensor_omp<Rank + Rank2, Dim, real_t>>();
 
                 const auto& other_data = other_cast->get_data();
 
@@ -145,6 +146,33 @@ namespace data_structure
 
                 return result;
             }
+
+            template<std::size_t Rank2, std::size_t Dim2>
+            std::unique_ptr<tensor_base<Rank + Rank2 - 2, Dim, real_t>> 
+            dot(const tensor_base<Rank2, Dim2, real_t>& other) const override 
+            {
+                if (this->size() != other.size()) {
+                    throw std::invalid_argument("Tensor sizes do not match for dot product.");
+                }
+            
+                const std::vector<real_t>& other_data = other.get_data();
+                std::size_t total_size = this->size();
+            
+                real_t global_dot = 0.0;
+            
+                #ifdef USING_OPENMP
+                #pragma omp parallel for reduction(+:global_dot)
+                #endif
+                for (std::size_t i = 0; i < total_size; ++i) {
+                    global_dot += this->data_[i] * other_data[i];
+                }
+            
+                auto result_tensor = std::make_unique<tensor_omp<Rank + Rank2 - 2, Dim, real_t>>();
+                result_tensor->init({global_dot});
+            
+                return result_tensor;
+            }
+            
     };
 
 } // namespace data_structure
