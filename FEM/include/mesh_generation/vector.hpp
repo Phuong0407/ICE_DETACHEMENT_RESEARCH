@@ -1,6 +1,9 @@
 #ifndef MESH_GENERATION_VECTOR_HPP
 #define MESH_GENERATION_VECTOR_HPP
 
+#include "geometry.hpp"
+#include "point.hpp"
+
 #include <array>
 #include <cmath>
 #include <type_traits>
@@ -21,6 +24,11 @@ namespace mesh_generation
         vector() : components{} {}
 
         explicit vector(const std::array<double_t, _spdim>& vals) : components(vals) {}
+
+        explicit vector(const point<double_t, _spdim>& P) {
+            for (unsigned int i = 0; i < _spdim; ++i)
+                components[i] = P(i);
+        }
 
         template <typename... Args, typename = std::enable_if_t<(sizeof...(Args) == _spdim) &&
                                       (std::conjunction_v<std::is_convertible<Args, double_t>...>)>>

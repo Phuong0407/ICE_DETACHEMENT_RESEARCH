@@ -11,6 +11,8 @@ namespace mesh_generation
     template<unsigned int _spdim, typename double_t> class edge;
     template<unsigned int _spdim, typename double_t> class line;
     template<unsigned int _spdim, typename double_t> class polygon;
+    template<unsigned int _spdim, typename double_t> class triangle;
+    template<unsigned int _spdim, typename double_t, typename index_t> class front_advancing;
 
 }
 

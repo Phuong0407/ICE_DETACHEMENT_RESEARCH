@@ -72,24 +72,6 @@ namespace mesh_generation
             return v1.cross(v2).normalize();
         }
 
-        // [[nodiscard]] double_t area() const
-        // {
-        //     if constexpr (_spdim != 2)
-        //         throw std::logic_error("area is only defined for 2D polygons.");
-
-        //     double_t sum = 0.0;
-        //     size_t n = vertices.size();
-
-        //     for (size_t i = 0; i < n; ++i)
-        //     {
-        //         const point<2, double_t>& p1 = vertices[i];
-        //         const point<2, double_t>& p2 = vertices[(i + 1) % n];
-        //         sum += (p1(0) * p2(1) - p2(1) * p1(0));
-        //     }
-
-        //     return std::abs(sum) * 0.5;
-        // }
-
         [[nodiscard]] double_t area() const
         {
             if constexpr (_spdim == 2) 
@@ -174,6 +156,56 @@ namespace mesh_generation
             std::cout << std::endl;
         }
 
+        bool __contains__(const point<_spdim, double_t>& P) const {
+            int count = 0;
+            int n = vertices.size();
+            
+            for (size_t i = 0, j = n - 1; i < n; j = i++) {
+                const point<_spdim, double_t>& A = vertices[i];
+                const point<_spdim, double_t>& B = vertices[j];
+
+                if ((A[1] > P[1]) != (B[1] > P[1]) &&
+                    (P[0] < (B[0] - A[0]) * (P[1] - A[1]) / (B[1] - A[1]) + A[0])) {
+                    count++;
+                }
+            }
+            return (count % 2) == 1;
+        }
+
+        [[nodiscard]] point<_spdim, double_t> nearest_point_on_boundary(const point<_spdim, double_t>& P) const {
+            point<_spdim, double_t> closestPoint;
+            double_t minDistance = std::numeric_limits<double_t>::max();
+
+            for (size_t i = 0; i < vertices.size(); ++i) {
+                const point<_spdim, double_t>& A = vertices[i];
+                const point<_spdim, double_t>& B = vertices[(i + 1) % vertices.size()];
+
+                point<_spdim, double_t> proj = P.project_to_edge(A, B);
+                
+                double_t distance = P.dist(proj);
+
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    closestPoint = proj;
+                }
+            }
+            return closestPoint;
+        }
+
+        [[nodiscard]] const std::vector<edge<_spdim, double_t>> get_boundary_edge() const {
+            std::vector<edge<_spdim, double_t>> edges;
+            for (size_t i = 0; i < vertices.size(); ++i) {
+                edges.emplace_back(vertices[i], vertices[(i + 1) % vertices.size()]);
+            }
+            return edges;
+        }
+
+        [[nodiscard]] const point<_spdim, double_t>& get_vertex(unsigned int i) const {
+            if (i >= _spdim) {
+                throw std::out_of_range("index out of bounds in point coordinate component-access.");
+            }
+            return vertices[i];
+        }
     };
 }
 

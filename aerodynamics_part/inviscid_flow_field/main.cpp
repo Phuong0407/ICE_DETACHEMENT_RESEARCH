@@ -29,7 +29,7 @@ int main() {
     double cpu_time_used;
     start = clock();
 
-    mesh2D *mesh = generate_algebraic_grid(4.0, 2.0, 3.0, 3.0, 3.0, 10, 10_x, 10, 5);
+    mesh2D *mesh = generate_algebraic_grid(4.0, 2.0, 3.0, 3.0, 3.0, 10, 10, 10, 5);
     generate_elliptic_mesh(mesh);
     generate_grid_connection(mesh);
     visualize_mesh_via_gnu_plot(mesh);

@@ -54,6 +54,11 @@ namespace mesh_generation
                 }
             }
 
+            explicit point(const vector<double_t, _spdim>& v) {
+                for (unsigned int i = 0; i < _spdim; ++i)
+                    x[i] = v(i);
+            }
+
             template<typename... Args,
                     typename = std::enable_if_t<(sizeof...(Args) == _spdim)
                         && (std::conjunction_v<std::is_convertible<Args, double_t>...>)>>
@@ -77,13 +82,6 @@ namespace mesh_generation
                 return !(*this == other);
             }
 
-            double_t operator()(unsigned int i) const {
-                if (i >= _spdim) {
-                    throw std::out_of_range("index out of bounds in point coordinate component-access.");
-                }
-                return x[i];
-            }
-
             void set(unsigned int i, double_t val) {
                 if (i >= _spdim) {
                     throw std::out_of_range("index out of bounds in point coordinate component-access.");
@@ -102,6 +100,13 @@ namespace mesh_generation
                 return std::sqrt(sum);
             }
 
+            double_t operator()(unsigned int i) const {
+                if (i >= _spdim) {
+                    throw std::out_of_range("index out of bounds in point coordinate component-access.");
+                }
+                return x[i];
+            }
+            
             constexpr unsigned int dim() const { return _spdim; }
 
             void print() const {
@@ -164,6 +169,29 @@ namespace mesh_generation
                 return A + AB * t;
             }
             
+            point<_spdim, double_t> project_to_edge(const point<_spdim, double_t>& A, const point<_spdim, double_t>& B) const
+            {
+                vector<_spdim, double_t> AB = B - A;
+                vector<_spdim, double_t> AP = (*this) - A;
+            
+                double_t dot_AB_AB = AB.dot(AB);
+                double_t dot_AP_AB = AP.dot(AB);
+            
+                if (std::abs(dot_AB_AB) < ETOL<double_t>) return A;
+            
+                double_t t = dot_AP_AB / dot_AB_AB;
+                t = std::max(double_t(0), std::min(static_cast<double_t>(1), t));
+                return A + AB * t;
+            }
+
+            static point<_spdim, double_t> mid_point(const point<_spdim, double_t>& A, const point<_spdim, double_t>& B) {
+                point<_spdim, double_t> _mid_point;
+                for (unsigned int i = 0; i < _spdim; ++i) {
+                    _mid_point.set(i, (A(i) + B(i)) / 2.0);
+                }
+                return _mid_point;
+            }
+
     };
 
 } // namespace mesh_generation

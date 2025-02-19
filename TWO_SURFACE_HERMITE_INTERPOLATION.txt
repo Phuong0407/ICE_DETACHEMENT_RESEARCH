@@ -1,0 +1,1 @@
+The stretching method for grid generation we have implemented create a good density of node near the boundary layer. However, as we have chosen a multi-block, there exists a "barrier" at the sharp edge. Now we need to adapt a new method to not inflate the computing cost.

@@ -59,6 +59,13 @@
         "variant": "cpp",
         "cassert": "cpp",
         "set": "cpp",
-        "map": "cpp"
+        "map": "cpp",
+        "dense": "cpp",
+        "complex": "cpp",
+        "cstring": "cpp",
+        "semaphore": "cpp",
+        "stop_token": "cpp",
+        "thread": "cpp",
+        "cinttypes": "cpp"
     }
 }

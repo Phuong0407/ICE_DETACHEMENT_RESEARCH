@@ -80,10 +80,10 @@ int main() {
     double H3 = 3.0;
     double a = (L1 - L2) / H2;
 
-    unsigned int M1 = 2;
-    unsigned int M2 = 2;
-    unsigned int M3 = 2;
-    unsigned int N = 2;
+    unsigned int M1 = 20;
+    unsigned int M2 = 20;
+    unsigned int M3 = 20;
+    unsigned int N = 40;
 
     auto xAB = [](double h, double H1, double H2) -> double { return H1 + H2 * h; };
     auto yAB = [](double h, double a, double H2) -> double { return a * H2 * h; };
@@ -105,7 +105,7 @@ int main() {
     grid_generation::generate_grid_by_hermite_interpolation(N, M2, 3.0, 3.0, 0.0, 0.0, xAB_wrapped, yAB_wrapped, xCD_wrapped, yCD_wrapped, dxAB_wrapped, dyAB_wrapped, dxCD_wrapped, dyCD, x2, y2);
     grid_generation::generate_full_grid(H1, H2, H3, N, M1, M2, M3, 1.8, 0.1, 2.0, x2, y2, x, y);
     grid_generation::generate_grid_connection(N, M1 + M2 + M3, connection);
-    // visualize_mesh_via_gnu_plot(x, y, connection);
+    visualize_mesh_via_gnu_plot(x, y, connection);
 
     grid structured_grid;
     structured_grid.init_grid_coordinate(x, y);
