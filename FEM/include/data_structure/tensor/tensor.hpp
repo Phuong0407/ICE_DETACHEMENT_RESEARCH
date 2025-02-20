@@ -3,8 +3,8 @@
 
 #include <memory>
 #include <iostream>
-#include "tensor_omp.hpp"
-#include "config.h"
+#include <data_structure/tensor/tensor_omp.hpp>
+#include <config.h>
 
 #ifdef USING_CUDA
 #include "tensor_cu.hpp"
@@ -22,40 +22,22 @@ namespace data_structure {
         tensor(running_device_t backend = running_device_t::CPU) : backend_(backend) {
             if (backend_ == running_device_t::CPU) {
                 tensor_impl_ = std::make_unique<tensor_omp<Rank, Dim, real_t, index_t>>();
-            }
-        #ifdef USING_CUDA
-            else if (backend_ == running_device_t::GPU) {
+            #ifdef USING_CUDA
+            } else if (backend_ == running_device_t::GPU) {
                 tensor_impl_ = std::make_unique<tensor_cu<Rank, Dim, real_t, index_t>>();
+            #endif
+            } else {
+                throw std::invalid_argument("Unsupported backend selected.");
             }
-        #endif
-            else
-                throw std::invalid_argument("unsupported backend selected.");
+            tensor_impl_->init();
         }
 
-        tensor(const tensor& other) : backend_(other.backend_) {
-            if (other.tensor_impl_) {
-                tensor_impl_ = std::make_unique<tensor_omp<Rank, Dim, real_t, index_t>>(*other.tensor_impl_);
-            }
+        const std::unique_ptr<tensor_base<Rank, Dim, real_t, index_t>>& get_tensor_impl() const {
+            return tensor_impl_;
         }
 
-        tensor& operator=(const tensor& other) {
-            if (this != &other) {
-                backend_ = other.backend_;
-                if (other.tensor_impl_) {
-                    tensor_impl_ = std::make_unique<tensor_omp<Rank, Dim, real_t, index_t>>(*other.tensor_impl_);
-                }
-            }
-            return *this;
-        }
-
-        tensor(tensor&& other) noexcept : backend_(other.backend_), tensor_impl_(std::move(other.tensor_impl_)) {}
-
-        tensor& operator=(tensor&& other) noexcept {
-            if (this != &other) {
-                backend_ = other.backend_;
-                tensor_impl_ = std::move(other.tensor_impl_);
-            }
-            return *this;
+        void set_tensor_impl(std::unique_ptr<tensor_base<Rank, Dim, real_t, index_t>> new_impl) {
+            tensor_impl_ = std::move(new_impl);
         }
 
         void init() {
@@ -76,33 +58,62 @@ namespace data_structure {
 
         tensor operator+(const tensor& other) const {
             tensor result(backend_);
-            result.tensor_impl_ = std::make_unique<tensor_omp<Rank, Dim, real_t, index_t>>(*tensor_impl_ + *other.tensor_impl_);
+        
+            auto* tensor_impl_omp = dynamic_cast<const tensor_omp<Rank, Dim, real_t, index_t>*>(tensor_impl_.get());
+            auto* other_impl_omp = dynamic_cast<const tensor_omp<Rank, Dim, real_t, index_t>*>(other.get_tensor_impl().get());
+        
+            if (tensor_impl_omp && other_impl_omp) {
+                result.set_tensor_impl(tensor_impl_omp->operator+(*other_impl_omp));
+            } else {
+                throw std::runtime_error("Invalid tensor type for addition");
+            }
+        
             return result;
         }
 
         tensor operator-(const tensor& other) const {
             tensor result(backend_);
-            result.tensor_impl_ = std::make_unique<tensor_omp<Rank, Dim, real_t, index_t>>(*tensor_impl_ - *other.tensor_impl_);
+            auto* tensor_impl_omp = dynamic_cast<const tensor_omp<Rank, Dim, real_t, index_t>*>(tensor_impl_.get());
+            auto* other_impl_omp = dynamic_cast<const tensor_omp<Rank, Dim, real_t, index_t>*>(other.get_tensor_impl().get());
+
+            if (tensor_impl_omp && other_impl_omp) {
+                result.set_tensor_impl(std::move(tensor_impl_omp->operator-(*other_impl_omp)));
+            }
             return result;
         }
 
         tensor operator*(const tensor& other) const {
             tensor result(backend_);
-            result.tensor_impl_ = std::make_unique<tensor_omp<Rank, Dim, real_t, index_t>>(*tensor_impl_ * *other.tensor_impl_);
+            auto* tensor_impl_omp = dynamic_cast<const tensor_omp<Rank, Dim, real_t, index_t>*>(tensor_impl_.get());
+            auto* other_impl_omp = dynamic_cast<const tensor_omp<Rank, Dim, real_t, index_t>*>(other.get_tensor_impl().get());
+
+            if (tensor_impl_omp && other_impl_omp) {
+                result.set_tensor_impl(std::move(tensor_impl_omp->operator*(*other_impl_omp)));
+            }
             return result;
         }
 
         template<unsigned int Rank2, unsigned int Dim2>
         tensor<Rank + Rank2 - 2, Dim, real_t, index_t> dot(const tensor<Rank2, Dim2, real_t, index_t>& other) const {
             tensor<Rank + Rank2 - 2, Dim, real_t, index_t> result(backend_);
-            result.tensor_impl_ = std::make_unique<tensor_omp<Rank + Rank2 - 2, Dim, real_t, index_t>>(*tensor_impl_->dot(*other.tensor_impl_));
+            auto* tensor_impl_omp = dynamic_cast<const tensor_omp<Rank, Dim, real_t, index_t>*>(tensor_impl_.get());
+            auto* other_impl_omp = dynamic_cast<const tensor_omp<Rank2, Dim2, real_t, index_t>*>(other.get_tensor_impl().get());
+
+            if (tensor_impl_omp && other_impl_omp) {
+                result.set_tensor_impl(std::move(tensor_impl_omp->dot(*other_impl_omp)));
+            }
             return result;
         }
 
         template<unsigned int Rank2, unsigned int Dim2>
         tensor<Rank + Rank2, Dim, real_t, index_t> outer(const tensor<Rank2, Dim2, real_t, index_t>& other) const {
             tensor<Rank + Rank2, Dim, real_t, index_t> result(backend_);
-            result.tensor_impl_ = std::make_unique<tensor_omp<Rank + Rank2, Dim, real_t, index_t>>(*tensor_impl_->outer(*other.tensor_impl_));
+            auto* tensor_impl_omp = dynamic_cast<const tensor_omp<Rank, Dim, real_t, index_t>*>(tensor_impl_.get());
+            auto* other_impl_omp = dynamic_cast<const tensor_omp<Rank2, Dim2, real_t, index_t>*>(other.get_tensor_impl().get());
+
+            if (tensor_impl_omp && other_impl_omp) {
+                result.set_tensor_impl(std::move(tensor_impl_omp->outer(*other_impl_omp)));
+            }
             return result;
         }
 
@@ -110,8 +121,8 @@ namespace data_structure {
             return tensor_impl_->get_data();
         }
 
-        void set_data(const tensor_base<Rank, Dim, real_t, index_t>& new_tensor) {
-            tensor_impl_ = std::make_unique<tensor_omp<Rank, Dim, real_t, index_t>>(new_tensor);
+        void set_data(const std::vector<real_t>& new_data) {
+            tensor_impl_->set_data(new_data);
         }
 
         unsigned int data_size() const {
