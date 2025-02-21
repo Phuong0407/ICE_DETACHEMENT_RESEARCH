@@ -1,0 +1,15 @@
+namespace data_structure
+{
+template<unsigned int Rank, typename real_t = double, typename index_t = unsigned int>
+class tensor_base {
+private:
+std::vector<real_t> data;
+std::array<index_t, Rank> shape;
+
+inline index_t id(std::array<index_t, Rank> ids) {
+    
+}
+
+public:
+};
+}
