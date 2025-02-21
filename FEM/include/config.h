@@ -4,24 +4,24 @@
 #include <iostream>
 #include <thread>
 
-#ifdef USING_OPENMP
-#include <omp.h>
-#endif
-
 #ifdef USING_CUDA
-#include <cuda_runtime.h>
+    #include <cuda_runtime.h>
 #endif
 
-template<typename T>
-constexpr T ETOL = 
-#ifdef USE_HYPER_PRECISION
-    static_cast<T>(1e-15);
-#elif defined(USE_ULTRA_PRECISION)
-    static_cast<T>(1e-12);
-#elif defined(USE_HIGH_PRECISION)
-    static_cast<T>(1e-6);
-#else
-    static_cast<T>(1e-12);
+#ifdef _OPENMP
+    #define USING_OPENMP 1
+    #include <omp.h>
+#endif
+
+#if defined(__has_include)
+    #if __has_include(<cblas.h>)
+        #define USING_BLAS 1
+        #include <cblas.h>
+    #endif
+#endif
+
+#if !defined(USING_BLAS) && !defined(USING_OPENMP)
+    #warning "Neither BLAS nor OpenMP detected. Using sequential execution."
 #endif
 
 inline int get_cpu_threads() {
@@ -42,21 +42,23 @@ inline int get_gpu_count() {
 #endif
 }
 
-inline int CPU_THREADS = get_cpu_threads();
-inline bool HAS_GPU = (get_gpu_count() > 0);
-
 enum class running_device_t {
     CPU,
     GPU
 };
 
-inline running_device_t RUNNING_DEVICE = (HAS_GPU) ? running_device_t::GPU : running_device_t::CPU;
+inline running_device_t get_running_device() {
+    return (get_gpu_count() > 0) ? running_device_t::GPU : running_device_t::CPU;
+}
+
+inline const int CPU_THREADS = get_cpu_threads();
+inline const bool HAS_GPU = (get_gpu_count() > 0);
+inline const running_device_t RUNNING_DEVICE = get_running_device();
 
 inline void print_system_info() {
     std::cout << "====================================\n";
     std::cout << "System Hardware Configuration:\n";
     std::cout << "------------------------------------\n";
-
     std::cout << "CPU Threads Available: " << CPU_THREADS << "\n";
 
     if (HAS_GPU) {
@@ -78,4 +80,17 @@ inline void print_system_info() {
     std::cout << "====================================\n";
 }
 
+template<typename real_t>
+constexpr real_t ETOL = 
+#ifdef USE_HYPER_PRECISION
+    static_cast<real_t>(1e-15);
+#elif defined(USE_ULTRA_PRECISION)
+    static_cast<real_t>(1e-12);
+#elif defined(USE_AVERAGE_PRECISION)
+    static_cast<real_t>(1e-6);
+#else
+    static_cast<real_t>(1e-12);
 #endif
+;
+
+#endif // CONFIG_H
