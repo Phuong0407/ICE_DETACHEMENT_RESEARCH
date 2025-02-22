@@ -1,0 +1,281 @@
+[33mcommit e9fca19da6967639f2c20cca9d6559f67f27379f[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Author: Phuong0407 <diepthanhphuong0407@gmail.com>
+Date:   Fri Feb 21 09:22:33 2025 +0100
+
+    add and test for matrix and vector
+
+[33mcommit 36b306d2e3be1ffee5df0d66e90e440bf1269354[m
+Author: Phuong0407 <diepthanhphuong0407@gmail.com>
+Date:   Fri Feb 21 09:21:38 2025 +0100
+
+    add and test for matrix and vector
+
+[33mcommit c4ae8377a6cfcf3d31347596708c9c85e55375ee[m
+Author: Phuong0407 <diepthanhphuong0407@gmail.com>
+Date:   Fri Feb 21 07:23:48 2025 +0100
+
+    add file for matrix and moving old tensor impl to implement new tensor version
+
+[33mcommit 26f225718000c5a7d995e8db48a4243468a4b054[m
+Author: Phuong0407 <diepthanhphuong0407@gmail.com>
+Date:   Thu Feb 20 10:20:48 2025 +0100
+
+    fail in tensor template class, refactor it later
+
+[33mcommit f7de6e089e296eff27a3af8e3e4184df802bf057[m
+Author: Phuong0407 <diepthanhphuong0407@gmail.com>
+Date:   Thu Feb 20 00:04:09 2025 +0100
+
+    add method for move and copy tensor
+
+[33mcommit 248950fc046af1fb14a4fa3e98b1794ac06ba0cf[m
+Author: Phuong0407 <diepthanhphuong0407@gmail.com>
+Date:   Wed Feb 19 22:24:57 2025 +0100
+
+    add file for matrix
+
+[33mcommit c12c1956d698f630eb50a01be7b7897b3c1c9ce4[m
+Author: Phuong0407 <diepthanhphuong0407@gmail.com>
+Date:   Wed Feb 19 22:22:26 2025 +0100
+
+    edit includepath
+
+[33mcommit 6d4c334ff6e72c57abaf2b6630073e8fb4621fd5[m
+Author: Phuong0407 <diepthanhphuong0407@gmail.com>
+Date:   Wed Feb 19 19:15:38 2025 +0100
+
+    move file to ./tensor
+
+[33mcommit ab988cdd98af5b064d66fc00b8b35fc0a7018eec[m
+Author: Phuong0407 <diepthanhphuong0407@gmail.com>
+Date:   Wed Feb 19 16:44:09 2025 +0100
+
+    add implemetation for gpu tensor
+
+[33mcommit d35ef2fe9dbb3c7660588fa831eb0ec8198ce57e[m
+Author: Phuong0407 <diepthanhphuong0407@gmail.com>
+Date:   Wed Feb 19 14:37:38 2025 +0100
+
+    add method for dot openMP
+
+[33mcommit 847f296832c50d0ba9e129cd29f657efb0c339df[m
+Author: Phuong0407 <diepthanhphuong0407@gmail.com>
+Date:   Wed Feb 19 14:18:39 2025 +0100
+
+    add data structure for tensor, for advancing front
+
+[33mcommit ece6da02ac22298ea93af1f3c6bd4544e2a5e617[m
+Author: Phuong0407 <diepthanhphuong0407@gmail.com>
+Date:   Mon Feb 17 17:52:37 2025 +0100
+
+    fix function __counter_clockwise__()
+
+[33mcommit 4f20eb8905562d9492fb9127b0f1c81b8ee39145[m
+Author: Phuong0407 <diepthanhphuong0407@gmail.com>
+Date:   Mon Feb 17 17:43:28 2025 +0100
+
+    add and finish unit test for polygon area()
+
+[33mcommit b0f2eb0ab0b9e87c8fde32bc9e6d9ee2e63b4271[m
+Author: Phuong0407 <diepthanhphuong0407@gmail.com>
+Date:   Mon Feb 17 17:18:52 2025 +0100
+
+    add file for general finite element method
+
+[33mcommit 58772a8b13ab2387cd67809f49961ec72cf37f16[m
+Author: Phuong0407 <diepthanhphuong0407@gmail.com>
+Date:   Thu Feb 13 17:04:45 2025 +0100
+
+    add method for stretch grid
+
+[33mcommit 613f561728db796a881a7b821022114619eeabea[m
+Author: Phuong0407 <diepthanhphuong0407@gmail.com>
+Date:   Wed Feb 12 23:47:07 2025 +0100
+
+    add file for grid generator
+
+[33mcommit 62c619c8dead84389ce779ac26016123c5b8a8be[m
+Author: Phuong0407 <diepthanhphuong0407@gmail.com>
+Date:   Wed Feb 12 22:43:24 2025 +0100
+
+    add points data for node cooridnates
+
+[33mcommit 5c9147fe778bc911ab9001d85d2cc59d6bf42c34[m
+Author: Phuong0407 <diepthanhphuong0407@gmail.com>
+Date:   Wed Feb 12 21:07:42 2025 +0100
+
+    add file for AMR
+
+[33mcommit 4f6a1f54ca6b213fcb6c646b8adfef853d318be7[m
+Author: Phuong0407 <diepthanhphuong0407@gmail.com>
+Date:   Thu Feb 6 23:11:07 2025 +0100
+
+    deleted C implementation of sparse solver
+
+[33mcommit e8da408a9ea6e997755837d490e9270c7860be32[m
+Author: Phuong0407 <diepthanhphuong0407@gmail.com>
+Date:   Thu Feb 6 23:08:46 2025 +0100
+
+    finish up to the stage of recovery gradient, checked all memory leaked and no bugs found. There are segmentation fault in the code due to stack overflow, need to fix in the future
+
+[33mcommit f343d8945b465bde02034231b3334add751cea68[m
+Author: Phuong0407 <diepthanhphuong0407@gmail.com>
+Date:   Thu Feb 6 16:41:03 2025 +0100
+
+    update the C caller to call FORTRAN
+
+[33mcommit e2134b1697a78da2ef5fef023e26ce6e69fdff9c[m
+Author: Phuong0407 <diepthanhphuong0407@gmail.com>
+Date:   Thu Feb 6 16:39:16 2025 +0100
+
+    add data structure for gradient at a node
+
+[33mcommit ff789d09b712fa44914eb827cb773a5be27e673c[m
+Author: Phuong0407 <diepthanhphuong0407@gmail.com>
+Date:   Thu Feb 6 16:21:23 2025 +0100
+
+    add file for dense solver using LU factorization using FORTRAN
+
+[33mcommit 74053f47f5ec01ab8943ff5dff494279c77f7755[m
+Author: Phuong0407 <diepthanhphuong0407@gmail.com>
+Date:   Thu Feb 6 16:20:41 2025 +0100
+
+    update the C caller to call FORTRAN
+
+[33mcommit afb8e229d94aca8d9e45993b95ba732c5902dabc[m
+Author: Phuong0407 <diepthanhphuong0407@gmail.com>
+Date:   Thu Feb 6 16:20:09 2025 +0100
+
+    modify to update the interoperation with C/C++
+
+[33mcommit 0f7c6b11906cb0d873a316d5b7e14e06fdd5f447[m
+Author: Phuong0407 <diepthanhphuong0407@gmail.com>
+Date:   Thu Feb 6 11:45:00 2025 +0100
+
+    add method for full node patch generation
+
+[33mcommit 404471f089199ccd990dc57f93eff790de2302d2[m
+Author: Phuong0407 <diepthanhphuong0407@gmail.com>
+Date:   Wed Feb 5 14:26:57 2025 +0100
+
+    modify the Neuman boundary condtion application function
+
+[33mcommit eb83ad55560baa177429b1cd52871507a8971d06[m
+Author: Phuong0407 <diepthanhphuong0407@gmail.com>
+Date:   Wed Feb 5 12:24:08 2025 +0100
+
+    add method for boundary processing and a C caller to call fortran module
+
+[33mcommit 3723be09196cc49d6429c9e0566f79d3703a930d[m
+Author: Phuong0407 <diepthanhphuong0407@gmail.com>
+Date:   Wed Feb 5 05:12:45 2025 +0100
+
+    migrate project from C++ to C
+
+[33mcommit 12d3a0d1ccd389fe642abe4e0f4740fa6c13d2c3[m
+Author: Phuong0407 <diepthanhphuong0407@gmail.com>
+Date:   Wed Feb 5 04:32:59 2025 +0100
+
+    migrate project from C++ to C
+
+[33mcommit 22853a5d9fb367316259e4d47fd51e22d904b9bd[m
+Author: Phuong0407 <diepthanhphuong0407@gmail.com>
+Date:   Wed Feb 5 04:31:40 2025 +0100
+
+    migrate project from C++ to C
+
+[33mcommit 4f8464d5d302454cacbbd4d980bafca1edb638db[m
+Author: Phuong0407 <diepthanhphuong0407@gmail.com>
+Date:   Wed Feb 5 04:30:10 2025 +0100
+
+    migrate project from C++ to C
+
+[33mcommit d6c3a141dc95066e4dfa34391f6ebc16718a4071[m
+Author: Phuong0407 <diepthanhphuong0407@gmail.com>
+Date:   Wed Feb 5 02:27:16 2025 +0100
+
+    migrate program from C++ to C for better performance
+
+[33mcommit 2b76b54240fcbe8eaafb175279f9ba771ec62e5c[m
+Author: Phuong0407 <diepthanhphuong0407@gmail.com>
+Date:   Wed Feb 5 02:23:38 2025 +0100
+
+    migrate C++ code to C code for better performance
+
+[33mcommit 9f60d190571552e9540cdceb920b786d3dbbee5a[m
+Author: Phuong0407 <diepthanhphuong0407@gmail.com>
+Date:   Sun Feb 2 19:02:54 2025 +0100
+
+    add method for gradient recovery
+
+[33mcommit 4beb92ae7bf9a201daecac7a178513ae23de4cab[m
+Author: Phuong0407 <diepthanhphuong0407@gmail.com>
+Date:   Sat Feb 1 16:50:58 2025 +0100
+
+    add method for construction of Neumann Boundary Conditions
+
+[33mcommit daf951961db77b01cffd3a5d897e18fafb3b39a2[m
+Author: Phuong0407 <diepthanhphuong0407@gmail.com>
+Date:   Sat Feb 1 16:50:12 2025 +0100
+
+    modify Neumann Boundary Contion Genenration method
+
+[33mcommit 008eac68e47cb94cd50ae150bdee1300614d9175[m
+Author: Phuong0407 <diepthanhphuong0407@gmail.com>
+Date:   Sat Feb 1 16:49:11 2025 +0100
+
+    add file for csr sparse solver
+
+[33mcommit 6ed481854c29edce88daf932bb83afe3b5c4f1b2[m
+Author: Phuong0407 <diepthanhphuong0407@gmail.com>
+Date:   Fri Jan 31 16:26:41 2025 +0100
+
+    add method to generate neumann boundary node index
+
+[33mcommit ea113402dc6e8b2b35317c721c89b693a8fa2c2e[m
+Author: Phuong0407 <diepthanhphuong0407@gmail.com>
+Date:   Fri Jan 31 13:06:45 2025 +0100
+
+    modify file to use 1D Array instead of 2D Array
+
+[33mcommit 096b13aa36c42d3c5814694b5826244e84b11e3d[m
+Author: Phuong0407 <diepthanhphuong0407@gmail.com>
+Date:   Fri Jan 31 01:32:02 2025 +0100
+
+    commit vscode setting of respository
+
+[33mcommit 20da82cb3cbf73a3829dbe0cf5aeab85077e0f17[m
+Author: Phuong0407 <diepthanhphuong0407@gmail.com>
+Date:   Fri Jan 31 01:31:03 2025 +0100
+
+    add method for global matrix computation
+
+[33mcommit e261be73bb7da27a239b9d409260061cbd021749[m
+Author: Phuong0407 <diepthanhphuong0407@gmail.com>
+Date:   Fri Jan 31 01:30:35 2025 +0100
+
+    modify data type aliaises
+
+[33mcommit dc503d698398dcb137521f3e16d8e8c1ebb3d050[m
+Author: Phuong0407 <diepthanhphuong0407@gmail.com>
+Date:   Thu Jan 30 23:25:25 2025 +0100
+
+    test grid coordinates and connection for various grid size
+
+[33mcommit 29e52e4bf34cbe7b16074d7c256f6b33e0774108[m
+Author: Phuong0407 <diepthanhphuong0407@gmail.com>
+Date:   Thu Jan 30 01:39:12 2025 +0100
+
+    add method for grid connection
+
+[33mcommit 19e1d45ac8f80feb6a95305c1f2e7d7bdcbefe95[m
+Author: Phuong0407 <diepthanhphuong0407@gmail.com>
+Date:   Thu Jan 30 00:59:23 2025 +0100
+
+    add computational code for flow field of first approximation of inviscid flow
+
+[33mcommit f604e27ea7e1e758714e85a51669fced31df6b20[m
+Author: Thanh Phuong DIEP <73374144+Phuong0407@users.noreply.github.com>
+Date:   Thu Jan 30 00:55:17 2025 +0100
+
+    Initial commit

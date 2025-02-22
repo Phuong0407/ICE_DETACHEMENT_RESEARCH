@@ -5,10 +5,10 @@
 
 namespace mesh_geometry {
     
-    template<unsigned int _spdim, typename index_t, typename number_traits>
+    template<unsigned int spdim, typename index_t, typename number_traits>
     class mesh_geometry {
         private:
-            static_assert(_spdim == 1 || _spdim == 2 || _spdim == 3, "spatial dimension must be 1, 2, or 3.");
+            static_assert(spdim == 1 || spdim == 2 || spdim == 3, "spatial dimension must be 1, 2, or 3.");
 
             index_t _n_node;
 

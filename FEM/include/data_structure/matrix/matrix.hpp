@@ -74,6 +74,15 @@ namespace data_structure
                 return _data[i];
             }
 
+            void print() const {
+                for (unsigned int i = 0; i < M; ++i) {
+                    for (unsigned int j = 0; j < N - 1; ++j) {
+                        std::cout << this->operator()(i, j) << "   ";
+                    }
+                    std::cout << this->operator()(i, N - 1) << std::endl;
+                }
+            }
+
             inline constexpr index_t row_size() const { return M; }
             inline constexpr index_t col_size() const { return N; }
             const std::array<real_t, M * N> & get_data() const { return _data; }
@@ -96,25 +105,38 @@ namespace data_structure
                     } else if constexpr (std::is_same_v<real_t, double>) {
                         cblas_daxpy(static_cast<int>(size), 1.0, this_data.data(), 1, result_data.data(), 1);
                         return result;
-                    } else {
-                        #ifdef USING_OPENMP
-                            goto OPENMP_ADDITION;
-                        #endif
                     }
                 #endif
 
-                #if defined(USING_OPENMP) && !defined(USING_BLAS)
-                OPENMP_ADDITION:
+                #if defined(USING_OPENMP)
                     #pragma omp parallel for
-                    for (index_t i = 0; i < size; ++i) {
-                        result_data[i] = this_data[i] + other_data[i];
-                    }
-                    return result;
                 #endif
                 for (index_t i = 0; i < size; ++i) {
                     result_data[i] = this_data[i] + other_data[i];
                 }
                 return result;
+            }
+
+            matrix<M, N, real_t, index_t>& operator+=(const matrix<M, N, real_t, index_t>& other) {
+                const std::array<real_t, M * N>& other_data = other.get_data();
+        
+                #ifdef USING_BLAS
+                    if constexpr (std::is_same_v<real_t, float>) {
+                        cblas_saxpy(static_cast<int>(M * N), 1.0f, other_data.data(), 1, _data.data(), 1);
+                        return *this;
+                    } else if constexpr (std::is_same_v<real_t, double>) {
+                        cblas_daxpy(static_cast<int>(M * N), 1.0, other_data.data(), 1, _data.data(), 1);
+                        return *this;                        
+                    }
+                #endif
+                
+                #ifdef USING_OPENMP
+                    #pragma omp parallel for
+                #endif
+                for (index_t i = 0; i < M * N; ++i) {
+                    _data[i] += other_data[i];
+                }
+                return *this;
             }
 
             matrix<M, N, real_t, index_t> operator-(const matrix &other) const {
@@ -134,20 +156,11 @@ namespace data_structure
                     } else if constexpr (std::is_same_v<real_t, double>) {
                         cblas_daxpy(static_cast<int>(size), -1.0, this_data.data(), 1, result_data.data(), 1);
                         return result;
-                    } else {
-                        #ifdef USING_OPENMP
-                            goto OPENMP_SUBTRACTION;
-                        #endif
                     }
                 #endif
 
-                #if defined(USING_OPENMP) && !defined(USING_BLAS)
-                    OPENMP_SUBTRACTION:
+                #ifdef USING_OPENMP
                     #pragma omp parallel for
-                    for (index_t i = 0; i < size; ++i) {
-                        result_data[i] = this_data[i] - other_data[i];
-                    }
-                    return result;
                 #endif
                 for (index_t i = 0; i < size; ++i) {
                     result_data[i] = this_data[i] - other_data[i];
@@ -155,6 +168,28 @@ namespace data_structure
                 return result;
             }
             
+            matrix<M, N, real_t, index_t>& operator-=(const matrix<M, N, real_t, index_t>& other) {
+                const std::array<real_t, M * N>& other_data = other.get_data();
+        
+                #ifdef USING_BLAS
+                    if constexpr (std::is_same_v<real_t, float>) {
+                        cblas_saxpy(static_cast<int>(M * N), -1.0f, other_data.data(), 1, _data.data(), 1);
+                        return *this;
+                    } else if constexpr (std::is_same_v<real_t, double>) {
+                        cblas_daxpy(static_cast<int>(M * N), -1.0, other_data.data(), 1, _data.data(), 1);
+                        return *this;                        
+                    }
+                #endif
+                
+                #ifdef USING_OPENMP
+                    #pragma omp parallel for
+                #endif
+                for (index_t i = 0; i < M * N; ++i) {
+                    _data[i] -= other_data[i];
+                }
+                return *this;
+            }
+
             template <unsigned int P>
             matrix<M, P, real_t, index_t> operator*(const matrix<N, P, real_t, index_t> &other) const {
                 matrix<M, P, real_t, index_t> result;
@@ -178,28 +213,11 @@ namespace data_structure
                                     0.0, result_data.data(), P);
                         return result;
                     } 
-                    else {
-                        #ifdef USING_OPENMP
-                            goto OPENMP_MULTIPLICATION;
-                        #endif
-                    }
                 #endif
 
-                #if defined(USING_OPENMP) && !defined(USING_BLAS)
-                OPENMP_MULTIPLICATION:
-                #pragma omp parallel for collapse(2)
-                    for (index_t i = 0; i < M; ++i) {
-                        for (index_t j = 0; j < P; ++j) {
-                            real_t sum = 0;
-                            for (index_t k = 0; k < N; ++k) {
-                                sum += this_data[i * N + k] * other_data[k * P + j];
-                            }
-                            result_data[i * P + j] = sum;
-                        }
-                    }
-                    return result;
+                #if defined(USING_OPENMP)
+                    #pragma omp parallel for collapse(2)
                 #endif
-
                 for (index_t i = 0; i < M; ++i) {
                     for (index_t j = 0; j < P; ++j) {
                         real_t sum = 0.0;
@@ -222,25 +240,16 @@ namespace data_structure
 
                     if constexpr (std::is_same_v<real_t, float>) {
                         cblas_sscal(static_cast<int>(M * N), val, result_data.data(), 1);
+                        return result;
                     } 
                     else if constexpr (std::is_same_v<real_t, double>) {
                         cblas_dscal(static_cast<int>(M * N), val, result_data.data(), 1);
-                    } 
-                    else {
-                        #ifdef USING_OPENMP
-                                goto OPENMP_SCALAR_MULTIPLICATION;
-                        #endif
+                        return result;
                     }
-                    return result;
                 #endif
 
-                #if defined(USING_OPENMP) && !defined(USING_BLAS)
-                    OPENMP_SCALAR_MULTIPLICATION:
+                #ifdef USING_OPENMP
                     #pragma omp parallel for
-                    for (index_t i = 0; i < M * N; ++i) {
-                        result_data[i] = this_data[i] * val;
-                    }
-                    return result;
                 #endif
 
                 for (index_t i = 0; i < M * N; ++i) {
@@ -284,13 +293,14 @@ namespace data_structure
                                     N, N, M,
                                     1.0f, data.data(), N, data.data(), N,
                                     0.0f, result_data.data(), N);
+                        return result;                        
                     } else if constexpr (std::is_same_v<real_t, double>) {
                         cblas_dgemm(CblasRowMajor, CblasTrans, CblasNoTrans,
                                     N, N, M,
                                     1.0, data.data(), N, data.data(), N,
                                     0.0, result_data.data(), N);
+                        return result;                        
                     }
-                    return result;
                 #endif
 
                 #ifdef USING_OPENMP
@@ -319,13 +329,14 @@ namespace data_structure
                                     M, M, N,
                                     1.0f, data.data(), N, data.data(), N,
                                     0.0f, result_data.data(), M);
+                        return result;                        
                     } else if constexpr (std::is_same_v<real_t, double>) {
                         cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasTrans,
                                     M, M, N,
                                     1.0, data.data(), N, data.data(), N,
                                     0.0, result_data.data(), M);
+                        return result;                        
                     }
-                    return result;
                 #endif
 
                 #ifdef USING_OPENMP
@@ -373,7 +384,6 @@ namespace data_structure
 
                     if (info != 0)
                         return 0.0;
-
                     for (index_t i = 0; i < M; ++i) {
                         if (pivot[i] != static_cast<int>(i + 1)) det = -det;
                         det *= temp(i, i);
@@ -456,6 +466,35 @@ namespace data_structure
                 }
                 return _is_symmetric;
             }
+
+            matrix<M, M, real_t, index_t> inverse() {
+                if (std::abs(this->det()) <= ETOL<real_t>)
+                    throw std::runtime_error("Matrix is not invertible.");
+            
+                Eigen::Matrix<real_t, M, M> A;
+                #ifdef USING_OPENMP
+                    #pragma omp parallel for collapse(2)
+                #endif
+                for (unsigned int i = 0; i < M; ++i) {
+                    for (unsigned int j = 0; j < M; ++j) {
+                        A(i, j) = this->operator()(i, j);
+                    }
+                }
+            
+                Eigen::Matrix<real_t, M, M> A_inverse = A.inverse();
+            
+                matrix<M, M, real_t, index_t> inv_matrix;
+                #ifdef USING_OPENMP
+                    #pragma omp parallel for collapse(2)
+                #endif
+                for (unsigned int i = 0; i < M; ++i) {
+                    for (unsigned int j = 0; j < M; ++j) {
+                        inv_matrix(i, j) = A_inverse(i, j);
+                    }
+                }
+                return inv_matrix;
+            }
+            
     };
 
 } // namespace data_structure    

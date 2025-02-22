@@ -17,11 +17,11 @@ namespace mesh_entity
                     return 0;
             }
             
-            static constexpr bool __valid_celltype(unsigned int _spdim, facetype_t type) {
-                return ((_spdim == 3 && (type == facetype_t::triangle || type == facetype_t::quadrilateral)));
+            static constexpr bool __valid_celltype(unsigned int spdim, facetype_t type) {
+                return ((spdim == 3 && (type == facetype_t::triangle || type == facetype_t::quadrilateral)));
             }
 
-            static constexpr unsigned int __nv(unsigned int _spdim, facetype_t type, faceorder_t order) {
+            static constexpr unsigned int __nv(unsigned int spdim, facetype_t type, faceorder_t order) {
                 unsigned int _nth = faceorder_helper::nth(order);
                 if (type == facetype_t::triangle)
                     return (_nth + 1) * (_nth + 2) / 2;

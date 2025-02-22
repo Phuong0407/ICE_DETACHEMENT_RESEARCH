@@ -6,8 +6,8 @@
 
 namespace mesh_entity {
 
-    template<unsigned int _spdim, typename index_t>
-    class face : public mesh_entity<_spdim, _spdim - 1, index_t> {
+    template<unsigned int spdim, typename index_t>
+    class face : public mesh_entity<spdim, spdim - 1, index_t> {
         private:
             facetype_t _t;
             faceorder_t _o;
@@ -15,14 +15,14 @@ namespace mesh_entity {
             face() = default;
 
             explicit face(index_t id, facetype_t _t, faceorder_t _o) :
-                mesh_entity<_spdim, _spdim - 1, index_t>(id, face_helper::__nse(_t)), _t(_t), _o(_o) {}
+                mesh_entity<spdim, spdim - 1, index_t>(id, face_helper::__nse(_t)), _t(_t), _o(_o) {}
 
             unsigned int order() const override {
                 return faceorder_helper::nth(_o);
             }
 
             unsigned int nv() override {
-                return face_helper::__nv(_spdim - 1, _t, _o);
+                return face_helper::__nv(spdim - 1, _t, _o);
             }
 
             void print() const override {

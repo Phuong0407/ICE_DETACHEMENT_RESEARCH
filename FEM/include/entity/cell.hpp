@@ -9,8 +9,8 @@
 
 namespace mesh_entity {
 
-    template<unsigned int _spdim, typename index_t>
-    class cell : public mesh_entity<_spdim, _spdim, index_t> {
+    template<unsigned int spdim, typename index_t>
+    class cell : public mesh_entity<spdim, spdim, index_t> {
     private:
         celltype_t _t = celltype_t::undefined;
         cellorder_t _o = cellorder_t::zero;
@@ -19,12 +19,12 @@ namespace mesh_entity {
         cell() = default;
 
         explicit cell(index_t id, celltype_t _t, cellorder_t _o) :
-            _t(_t), _o(_o), mesh_entity<_spdim, _spdim, index_t>(id, cell_helper::__nse(_spdim, _t))
+            _t(_t), _o(_o), mesh_entity<spdim, spdim, index_t>(id, cell_helper::__nse(spdim, _t))
         {
-            if (!cell_helper::__valid_celltype(_spdim, _t)) {
+            if (!cell_helper::__valid_celltype(spdim, _t)) {
                 throw std::invalid_argument("error: cannot initialize a "
-                        + std::to_string(cell_helper::__spdim(_t)) + "D cell"
-                        " in " + std::to_string(_spdim) + "D space.");
+                        + std::to_string(cell_helper::spdim(_t)) + "D cell"
+                        " in " + std::to_string(spdim) + "D space.");
             }
         }
 
@@ -36,7 +36,7 @@ namespace mesh_entity {
         }
 
         unsigned int nv() override {
-            return cell_helper::__nv(_spdim, _t, _o);
+            return cell_helper::__nv(spdim, _t, _o);
         }
 
         void print() const override {

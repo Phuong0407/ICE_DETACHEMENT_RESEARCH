@@ -50,6 +50,8 @@ namespace data_structure
 
             real_t& operator()(index_t i) { return this->get_data()[i]; }
             const real_t& operator()(index_t i) const { return this->get_data()[i]; }
+            const vector<M, real_t, index_t>& operator()() const { return this->get_data(); }
+            
             constexpr index_t size() const { return M; }
             
             vector operator+(const vector& other) const {
@@ -116,7 +118,12 @@ namespace data_structure
                 return result;
             }
 
-
+            void print() const {
+                for (unsigned int i = 0; i < M; ++i) {
+                    std::cout << this->operator()(i) << std::endl;
+                }
+                std::cout << std::endl;
+            }
     };
 
 } // namespace data_structure

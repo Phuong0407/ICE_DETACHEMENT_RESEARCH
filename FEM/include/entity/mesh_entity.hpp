@@ -26,13 +26,13 @@ namespace mesh_entity
      * @class mesh_entity
      * @brief base class representing a generic mesh entity with basic properties and functionality.
      * 
-     * @tparam _spdim space dimension (must be 2 or 3).
-     * @tparam _gedim geometric dimension of the entity:
+     * @tparam spdim space dimension (must be 2 or 3).
+     * @tparam gedim geometric dimension of the entity:
      *              - 0 for vertices
      *              - 1 for edges
-     *              - _spdim - 1 for faces, acepted only for 3D mesh
+     *              - spdim - 1 for faces, acepted only for 3D mesh
      *                      - supported only triangles and quadrilaterals
-     *              - _spdim for cells
+     *              - spdim for cells
      *                      - triangles and quadrilaterals in 2D
      *                      - tetrahedra and hexahedra in 3D
      * @tparam index_t integer type used for indexing mesh entities
@@ -43,8 +43,8 @@ namespace mesh_entity
      *  Each entity is uniquely identified by its index and stores the number of its subentities.
      * 
      * @remark Compile-Time constraints:
-     *  - `_spdim` must be 2 or 3 (only 2D and 3D meshes are supported).
-     *  - `_gedim` must be less than or equal to `_spdim`
+     *  - `spdim` must be 2 or 3 (only 2D and 3D meshes are supported).
+     *  - `gedim` must be less than or equal to `spdim`
      *              (an entity cannot have a higher geometric dimension than the space it resides in).
      * - `index_t` must be an integral type.
      * 
@@ -69,11 +69,11 @@ namespace mesh_entity
      *  - The `nv()` function is implemented for edges, faces, and cells but always returns 0 for vertices. 
     */
 
-    template<unsigned int _spdim, unsigned int _gedim, typename index_t>
+    template<unsigned int spdim, unsigned int gedim, typename index_t>
     class mesh_entity {
         private:
-            static_assert(_spdim == 2 || _spdim == 3, "error: only 2D and 3D are supported.");
-            static_assert(_gedim <= _spdim, "error: a mesh entity dimension is less than or equal to space dimension.");            
+            static_assert(spdim == 2 || spdim == 3, "error: only 2D and 3D are supported.");
+            static_assert(gedim <= spdim, "error: a mesh entity dimension is less than or equal to space dimension.");            
             static_assert(std::is_integral_v<index_t>, "index_t must be an integral type");
 
             index_t _id;
@@ -90,8 +90,8 @@ namespace mesh_entity
 
             index_t id() const { return _id; }
             unsigned int nse() const { return _nse; }
-            static constexpr unsigned int sp_dim() { return _spdim; }
-            static constexpr unsigned int ge_dim() { return _gedim; }
+            static constexpr unsigned int sp_dim() { return spdim; }
+            static constexpr unsigned int ge_dim() { return gedim; }
 
             virtual unsigned int order() const { return 0; }
             virtual unsigned int nv() { return 0; }
